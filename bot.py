@@ -26,7 +26,7 @@ async def parse_message(message):
             target_channel = client.get_channel(targetchannelid)
             statecontent = statecontent[maybematch.end():]
 
-        pings = set(re.findall(r'<@\d+>', statecontent))
+        pings = set(re.findall(r'<@!*\d+>', statecontent))
         separator = ' - ' if pings else ''
         content = f'{" ".join(pings)}{separator}{MODSTATE_STRING}'
         embed = discord.Embed(
