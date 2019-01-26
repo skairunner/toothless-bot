@@ -4,7 +4,10 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [packages]
-discord = {py = "*"}
+discord.py = "*"
 
 [requires]
-python_version = "3.6"
+python_version = "3.6.8"
+
+[dev-packages]
+pytest = "*"

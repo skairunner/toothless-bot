@@ -1,0 +1,3 @@
+[submodule "tymora/tymora"]
+	path = tymora/tymora
+	url = https://github.com/neersighted/tymora
