@@ -19,24 +19,25 @@ class ConfigError(BaseException):
 
 
 def run_bot(token, prefixes, commandprefix='/'):
-    global prefix_patterns, COMMAND_PREFIX
-    prefix_patterns = prefixes
-    if len(commandprefix) > 1:
-        raise ConfigError(f'Command prefixes can only be 0 or 1 characters. It is currently {len(commandprefix)}.')
-    COMMAND_PREFIX = commandprefix
+    client = Toothless(prefixes, commandprefix)
     client.run(token)
 
 
-@client.event
-async def on_ready():
-    print(f'Logged in as {client.user.name}')
+class Toothless(discord.Client):
+    def __init__(self, prefixes, commandprefix='/', *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.prefix_patterns = prefixes
+        if len(commandprefix) > 1:
+            raise ConfigError(f'Command prefixes can only be 0 or 1 characters. It is currently {len(commandprefix)}.')
+        self.commandprefix = commandprefix
 
+    async def on_ready(self):
+        print(f'Logged in as {self.user.name}')
 
-@client.event
-async def on_message(message):
-    if message.content.startswith(COMMAND_PREFIX):
-        prefixlen = len(COMMAND_PREFIX)
-        loop = asyncio.get_event_loop()
-        coro = match_path(prefix_patterns, client, message, message.content[prefixlen:])
-        if coro:
-            loop.create_task(coro)
+    async def on_message(self, message):
+        if message.content.startswith(COMMAND_PREFIX):
+            prefixlen = len(COMMAND_PREFIX)
+            loop = asyncio.get_event_loop()
+            coro = match_path(prefix_patterns, self, message, message.content[prefixlen:])
+            if coro:
+                loop.create_task(coro)
