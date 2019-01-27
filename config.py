@@ -1,5 +1,4 @@
 from toothless import commandrouter as cr
-from hello import hello_world
 from state import modstate
 import logging
 import os
@@ -17,6 +16,5 @@ TOKEN = os.environ['BOTTOKEN']
 COMMAND_PREFIX = '/'
 
 prefix_patterns = [
-    cr.path('hi', hello_world),
     cr.path('state', modstate)
 ]

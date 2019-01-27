@@ -29,8 +29,7 @@ def run_bot(token, prefixes, commandprefix='/'):
 
 @client.event
 async def on_ready():
-    print('Logged in as')
-    print(client.user.name)
+    print(f'Logged in as {client.user.name}')
 
 
 @client.event
