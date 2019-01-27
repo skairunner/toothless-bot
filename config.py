@@ -1,7 +1,10 @@
-from toothless import commandrouter as cr
-from state import modstate
 import logging
 import os
+from toothless import commandrouter as cr
+
+from state import modstate
+from tymora_plugin import do_dice
+
 
 # By default, discord.py is silent to stdout.
 # Set so all messages are logged
@@ -16,5 +19,6 @@ TOKEN = os.environ['BOTTOKEN']
 COMMAND_PREFIX = '/'
 
 prefix_patterns = [
-    cr.path('state', modstate)
+    cr.path('state', modstate),
+    cr.path('r', do_dice)
 ]

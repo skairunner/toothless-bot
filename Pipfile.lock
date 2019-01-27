@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "34f70d72b80032cae1ec311a2f504b21bb5de1abdb50bf8a6c13f89da1461ddc"
+            "sha256": "2f10dc53143b72109002db1410ec02f99258304484a67d22c107ba33928ea9ea"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -29,6 +29,14 @@
                 "sha256:e1985766a4c83fcbdf7dde06544231fc9fb3de8929788179e623d6f9f9f321d2"
             ],
             "version": "==1.0.5"
+        },
+        "arpeggio": {
+            "hashes": [
+                "sha256:a5258b84f76661d558492fa87e42db634df143685a0e51802d59cae7daad8732",
+                "sha256:dc5c0541e7cc2c6033dc0338133436abfac53655624784736e9bc8bd35e56583"
+            ],
+            "index": "pypi",
+            "version": "==1.9.0"
         },
         "async-timeout": {
             "hashes": [
@@ -90,6 +98,10 @@
                 "sha256:db603a1c235d110c860d5f39988ebc8218ee028f07a7cbc056ba6424372ca31b"
             ],
             "version": "==4.5.2"
+        },
+        "tymora": {
+            "git": "https://github.com/neersighted/tymora.git",
+            "ref": "ec6ada6033ab288550b397bf7dfe3866348d97da"
         },
         "websockets": {
             "hashes": [

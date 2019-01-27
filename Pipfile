@@ -5,6 +5,8 @@ verify_ssl = true
 
 [packages]
 discord = {py = "*"}
+Arpeggio = "*"
+tymora = {git = "https://github.com/neersighted/tymora.git"}
 
 [requires]
 python_version = "3.6.8"
