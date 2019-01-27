@@ -8,14 +8,16 @@ import ssl
 import aiohttp
 import functools
 
-from ..config import prefix_patterns
 from .commandrouter import match_path
 
 
 client = discord.Client()
+prefix_patterns = []
 
 
-def run_bot():
+def run_bot(prefixes):
+    global prefix_patterns
+    prefix_patterns = prefixes
     logging.basicConfig(level=logging.INFO)
     client.run(os.environ['BOTTOKEN'])
 
