@@ -1,7 +1,5 @@
 import discord
 import asyncio
-import logging
-import os
 import re
 import sqlite3
 import ssl
@@ -15,11 +13,10 @@ client = discord.Client()
 prefix_patterns = []
 
 
-def run_bot(prefixes):
+def run_bot(token, prefixes):
     global prefix_patterns
     prefix_patterns = prefixes
-    logging.basicConfig(level=logging.INFO)
-    client.run(os.environ['BOTTOKEN'])
+    client.run(token)
 
 
 @client.event
