@@ -9,11 +9,6 @@ import functools
 from .commandrouter import match_path
 
 
-client = discord.Client()
-prefix_patterns = []
-COMMAND_PREFIX = '/'
-
-
 class ConfigError(BaseException):
     pass
 
@@ -35,9 +30,9 @@ class Toothless(discord.Client):
         print(f'Logged in as {self.user.name}')
 
     async def on_message(self, message):
-        if message.content.startswith(COMMAND_PREFIX):
-            prefixlen = len(COMMAND_PREFIX)
+        if message.content.startswith(self.commandprefix):
+            prefixlen = len(self.commandprefix)
             loop = asyncio.get_event_loop()
-            coro = match_path(prefix_patterns, self, message, message.content[prefixlen:])
+            coro = match_path(self.prefix_patterns, self, message, message.content[prefixlen:])
             if coro:
                 loop.create_task(coro)
