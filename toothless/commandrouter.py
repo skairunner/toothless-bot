@@ -1,6 +1,30 @@
 from importlib import import_module
 
 
+class WrongBoxedType(BaseException):
+    pass
+
+
+class Path:
+    def __init__(self, prefix, inner):
+        self.prefix = prefix
+        self.inner = inner
+
+    def is_list(self):
+        return isinstance(self.inner, list)
+
+    def __call__(self, *args, **kwargs):
+        if not callable(self.inner):
+            raise WrongBoxedType('The boxed type is not callable.')
+        return self.inner(*args, **kwargs)
+
+    def __iter__(self):
+        try:
+            return iter(self.inner)
+        except TypeError:
+            raise WrongBoxedType('The boxed type is not iterable')
+
+
 """
 Parses prefix and either calls the provided function, or
 passes rest of message to another set of paths
@@ -9,10 +33,7 @@ passes rest of message to another set of paths
 :returns: A modified instance of `func`
 """
 def path(prefix, func):
-    async def inner(client, message, chopped):
-        return await func(client, message, chopped)
-    inner.prefix = prefix
-    return inner
+    return Path(prefix, func)
 
 
 """
@@ -35,7 +56,8 @@ def match_path(paths, client, message, chopped):
                 chopped = chopped[prefixlen + 1:]
                 matched = True
             if matched:
-                if isinstance(p, list):
+                # Must continue recursion until reaching a callable or None
+                if p.is_list():
                     return match_path(p, client, message, chopped)
                 else:
                     return p(client, message, chopped)
