@@ -10,7 +10,7 @@ passes rest of message to another set of paths
 """
 def path(prefix, func):
     async def inner(client, message, chopped):
-        await func(client, message, chopped)
+        return await func(client, message, chopped)
     inner.prefix = prefix
     return inner
 
