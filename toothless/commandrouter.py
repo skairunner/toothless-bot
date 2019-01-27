@@ -23,10 +23,7 @@ def include(modulename):
     return getattr(import_module(modulename), 'prefix_patterns')
 
 
-def match_path(paths, client, message, chopped=None):
-    if chopped is None:
-        chopped = message.content
-
+def match_path(paths, client, message, chopped):
     for p in paths:
         prefixlen = len(p.prefix)
         if chopped.startswith(p.prefix):

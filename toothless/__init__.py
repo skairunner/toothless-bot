@@ -11,11 +11,19 @@ from .commandrouter import match_path
 
 client = discord.Client()
 prefix_patterns = []
+COMMAND_PREFIX = '/'
 
 
-def run_bot(token, prefixes):
-    global prefix_patterns
+class ConfigError(BaseException):
+    pass
+
+
+def run_bot(token, prefixes, commandprefix='/'):
+    global prefix_patterns, COMMAND_PREFIX
     prefix_patterns = prefixes
+    if len(commandprefix) > 1:
+        raise ConfigError(f'Command prefixes can only be 0 or 1 characters. It is currently {len(commandprefix)}.')
+    COMMAND_PREFIX = commandprefix
     client.run(token)
 
 
@@ -27,7 +35,9 @@ async def on_ready():
 
 @client.event
 async def on_message(message):
-    loop = asyncio.get_event_loop()
-    coro = match_path(prefix_patterns, client, message)
-    if coro:
-        loop.create_task(coro)
+    if message.content.startswith(COMMAND_PREFIX):
+        prefixlen = len(COMMAND_PREFIX)
+        loop = asyncio.get_event_loop()
+        coro = match_path(prefix_patterns, client, message, message.content[prefixlen:])
+        if coro:
+            loop.create_task(coro)
