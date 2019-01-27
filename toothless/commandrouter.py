@@ -35,7 +35,7 @@ def match_path(paths, client, message, chopped=None):
                 chopped = ''
                 matched = True
             elif chopped[prefixlen] == ' ':
-                chopped = chopped[prefixlen + 1]
+                chopped = chopped[prefixlen + 1:]
                 matched = True
             if matched:
                 if isinstance(p, list):
