@@ -9,6 +9,7 @@ class Path:
     def __init__(self, prefix, inner):
         self.prefix = prefix
         self.inner = inner
+        self.pattern = 
 
     def is_list(self):
         return isinstance(self.inner, list)
