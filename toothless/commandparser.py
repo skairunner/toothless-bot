@@ -1,5 +1,6 @@
 import re
 from .argparsers import ARG_PARSERS
+from . import tokens as tok
 
 # used for finding <:> format args
 ARG_PATTERN = re.compile(r'<(?P<name>[A-Za-z_][\w]*):(?P<type>int|str|real)>')
@@ -9,6 +10,7 @@ ARG_REGEX_TEMPLATE = '(?P<{name}>{pattern})'
 
 class ArgumentNameDuplicateError(IndexError):
     pass
+
 
 """
 Parses <:> command syntax into regexes.
@@ -44,6 +46,25 @@ def regex_from_pattern(patternstring):
             regex_bits.append(ARG_REGEX_TEMPLATE.format(
                 name=name, pattern=parser.pattern.patternstring)
             )
-    # Also glob everything at the end
-    regex_bits.append(r'(?P<__leftover>.*)')
-    return (''.join(regex_bits), parsers)
+    return (r'\s+'.join(regex_bits), parsers)
+
+
+"""
+Parses <:> format pathstr. All extra whitespace is removed.
+:param pathstr: The pathstr to parse
+:returns: Array of prototokens to match inputs against
+"""
+def parse_pathstr(pathstr):
+    sections = re.split(r'\s+', pathstr)
+    prototokens = []
+    # Convert args into ProtoTokens
+    for string in sections:
+        maybematch = ARG_PATTERN.match(string)
+        if maybematch is not None:
+            name = maybematch.group('name')
+            type_ = maybematch.group('type')
+            prototoken = tok.PROTOTOKENS[type_]
+            prototokens.append(prototoken(name))
+        else:
+            prototokens.append(tok.StaticProto(string))
+    return prototokens
