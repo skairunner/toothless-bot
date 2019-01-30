@@ -1,4 +1,6 @@
 from importlib import import_module
+import re
+from .commandparser import regex_from_pattern
 
 
 class WrongBoxedType(BaseException):
@@ -6,8 +8,8 @@ class WrongBoxedType(BaseException):
 
 
 class Path:
-    def __init__(self, prefix, inner):
-        self.prefix = prefix
+    def __init__(self, pathstr, inner):
+        self.pattern = re.compile(regex_from_pattern(pathstr))
         self.inner = inner
 
     def is_list(self):
