@@ -12,6 +12,10 @@ class ArgumentNameDuplicateError(IndexError):
     pass
 
 
+class ParserError(BaseException):
+    pass
+
+
 """
 Parses <:> command syntax into regexes.
 
@@ -68,3 +72,54 @@ def parse_pathstr(pathstr):
         else:
             prototokens.append(tok.StaticProto(string))
     return prototokens
+
+
+QUOTES = '"' "'" '`'
+"""
+Reads a string into tokens.
+
+All tokens are separated by a space.
+Additionally, tokens that start with quote marks (',",`) continue,
+not terminating on spaces, until encountering another quote mark.
+
+:param string: The input string to tokenize
+:returns: List of strings, divided into tokens
+:raises: ParserError if the format string is invalid. ValueError if put in an invalid state.
+"""
+def tokenize(string):
+    out = []
+    state = tok.TokenizerState.NORMAL
+    accum = []
+    for ch in string:
+        if state == tok.TokenizerState.NORMAL:
+            if ch in QUOTES:
+                state = tok.STATE_FROM_QUOTE[ch]
+            elif ch == ' ':
+                out.append(''.join(accum))
+                accum = []
+            else:
+                accum.append(ch)
+        elif state == tok.TokenizerState.MUST_SPACE:
+            if ch != ' ':
+                raise ParserError('Expected a space after a quote, found {ch} instead.')
+            else:
+                state = tok.TokenizerState.NORMAL
+        else:
+            # Hopefully we're in one of the quote states.
+            try:
+                quotestate = tok.STATE_FROM_QUOTE[ch]
+            except KeyError:
+                # This isn't an end quote, so append to accum
+                accum.append(ch)
+                continue
+            # if we got to here, it means this could be an endstate
+            if quotestate == state:
+                out.append(''.join(accum))
+                accum = []
+                state = tok.TokenizerState.MUST_SPACE
+            else:
+                accum.append(ch)
+    if len(accum) != 0:
+        out.append(''.join(accum))
+    return out
+
