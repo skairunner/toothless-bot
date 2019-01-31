@@ -1,15 +1,46 @@
 from importlib import import_module
 import re
-from .commandparser import regex_from_pattern
+from .commandparser import parse_pathstr
+from .tokens import TokenMismatch, RemainderProto, StaticProto
+from enum import Enum
 
 
+# Raised if attempting to () on a Path's inner list, or
+# if attempting to [] on a Path's inner function.
 class WrongBoxedType(BaseException):
     pass
 
 
+# Raised if the tokens don't fit the current path
+class PathMismatch(BaseException):
+    pass
+
+
+# Raised if the tokens don't match the path,but it may be recoverable
+# eg. by recursing more
+class ContinueMatching(BaseException):
+    pass
+
+
+# A path may only have static args if it contains a list
+class InvalidPath(BaseException):
+    pass
+
+
+class PathWrappedType(Enum):
+    CALLABLE = 1,
+    LIST = 2
+
+
 class Path:
     def __init__(self, pathstr, inner):
-        self.pattern = re.compile(regex_from_pattern(pathstr))
+        self.prototokens = parse_pathstr(pathstr)
+        if callable(inner):
+            self.wrapped = PathWrappedType.CALLABLE
+        elif isinstance(inner, list):
+            self.wrapped = PathWrappedType.LIST
+        else:
+            raise WrongBoxedType(f'Inner object of Path must be type list or a callable. It is actually type {type(inner)}')
         self.inner = inner
 
     def is_list(self):
@@ -30,12 +61,12 @@ class Path:
 """
 Parses prefix and either calls the provided function, or
 passes rest of message to another set of paths
-:param prefix: The prefix pattern to match on
+:param pathstr: The path pattern to match on
 :param func: The function to call to parse the command
 :returns: A modified instance of `func`
 """
-def path(prefix, func):
-    return Path(prefix, func)
+def path(pathstr, func):
+    return Path(pathstr, func)
 
 
 """
@@ -45,26 +76,112 @@ includes a prefix_patterns list from the given module
 def include(modulename):
     return getattr(import_module(modulename), 'prefix_patterns')
 
+"""
+Helper function used by match_tokens. Matches as many tokens as possible
+until reaching the end of either array, then returns the matched results
++ how many were matched, respectively.
 
-def match_path(paths, client, message, chopped):
+Raises PathMismatch if an incorrect token was matched.
+
+:param prototokens: A list of prototokens to match against.
+:param tokens: A list of tokens to match vs the prototokens.
+:returns: (result list, number of tokens matched)
+:raises: PathMismatch if a token doesn't match the prototoken
+"""
+def match_prototokens_to_tokens(prototokens, tokens):
+    pathlen = len(prototokens)
+    tokenslen = len(tokens)
+    results = []
+    if len(prototokens) == 0:
+        return ([], (0, 0))
+    # Remainder tokens glob everything left
+    if isinstance(prototokens[-1], RemainderProto):
+        # If there's too many prototokens, can't match
+        if tokenslen < pathlen - 1:
+            raise PathMismatch(f'Too many tokens vs prototokens ({tokenslen}, {pathlen})')
+        # all tokens before Remainder must match
+        for i in range(pathlen - 1):
+            arg = prototokens[i]
+            token = tokens[i]
+            try:
+                results.append(arg.verify(token))
+            except TokenMismatch:
+                if isinstance(token, StaticProto):
+                    raise PathMismatch(
+                        f'The staticstr {token.staticstr}'
+                        f'could not be matched to token "{token}"')
+                raise PathMismatch(
+                    f'The arg "{arg.name}" could not be matched'
+                    f'to token "{token}"')
+        # All tokens have been matched.
+        # Join remaining tokens into one string and return
+        results.append(' '.join(tokens[pathlen - 1:]))
+        return (results, (pathlen, tokenslen))
+    # If there's more protos than tokens, cannot match.
+    if pathlen > tokenslen:
+        raise PathMismatch(f'Not enough tokens. ({pathlen} > {tokenslen})')
+    # Otherwise, if tokens >= paths, try matching
+    for i in range(pathlen):
+        proto = prototokens[i]
+        token = tokens[i]
+        try:
+            results.append(proto.verify(token))
+        except TokenMismatch:
+            if isinstance(token, StaticProto):
+                raise PathMismatch(
+                    f'The staticstr {token.staticstr}'
+                    f'could not be matched to token "{token}"')
+            raise PathMismatch(
+                f'The arg "{arg.name}" could not be matched'
+                f'to token "{token}"')
+    # Return the matches
+    return (results, (pathlen, pathlen))
+
+
+"""
+Attempt to match the path's prototokens against the tokens provided.
+:param path: a Path object to match the tokens against
+:param tokens: A list of tokens (=strings) to match.
+:raises: PathMismatch if the tokens don't match the path. ContinueMatching
+if the path might be matchable by a subpath
+"""
+def match_tokens(path, tokens):
+    results, matchcount = match_prototokens_to_tokens(path.prototokens, tokens)
+    # If both path and tokens 0, could possibly do more
+    if matchcount == (0, 0):
+        if path.wrapped == PathWrappedType.LIST:
+            raise ContinueMatching()
+    if matchcount[1] != len(tokens):
+        # Not all tokens were matched.
+        # If Path is not a List, error.
+        if path.wrapped == PathWrappedType.LIST:
+            raise ContinueMatching()
+        raise PathMismatch('Not all tokens were matched.')
+    # Other possibilities (1) Globbed (2) Matched normally
+    return results
+
+
+"""
+Will try to match. If all input tokens are consumed and the content of the Path
+is a list, attempt to match the remaining tokens to those paths. If it fails,
+return to attempting to match against the existing path list.
+"""
+def match_path(paths, tokens, client, message):
     for p in paths:
-        prefixlen = len(p.prefix)
-        if chopped.startswith(p.prefix):
-            matched = False
-            if chopped == p.prefix:
-                chopped = ''
-                matched = True
-            elif chopped[prefixlen] == ' ':
-                chopped = chopped[prefixlen + 1:]
-                matched = True
-            if matched:
-                # Must continue recursion until reaching a callable or None
-                if p.is_list():
-                    return match_path(p, client, message, chopped)
-                else:
-                    return p(client, message, chopped)
-    return None
-
+        try:
+            results = match_tokens(p.prototokens, tokens)
+            # build a name->match dict
+            args = {}
+            for i, result in enumerate(results):
+                if not isinstance(p.prototokens[i], StaticProto):
+                    args[p.prototokens[i].name] = result
+            return p(client, message, **args)
+        except PathMismatch:
+            # This path doesn't match. Go to next.
+            continue
+        except ContinueMatching:
+            return match_path(p.inner, tokens[len(p.prototokens):], client, message)
+    raise PathMismatch('Could not find a path that matches the tokens.')
 
 """
 A command that has a prefix

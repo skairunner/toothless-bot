@@ -2,6 +2,8 @@ import re
 from enum import Enum
 
 
+# Raised if a ProtoToken is given an input string that does not match the 
+# token type it represents.
 class TokenMismatch(BaseException):
     pass
 
@@ -21,12 +23,12 @@ class StaticProto(ProtoToken):
     def verify(self, string):
         if self.staticstr != string:
             raise TokenMismatch()
-        return True
+        return string
 
 # A token that represents a string argument
 class StringProto(ProtoToken):
     def verify(self, string):
-        return True
+        return string
 
 class IntProto(ProtoToken):
     def verify(self, string):
