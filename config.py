@@ -4,6 +4,7 @@ from toothless import commandrouter as cr
 
 from state import modstate
 from tymora_plugin import do_dice
+from hello import hello
 
 
 # By default, discord.py is silent to stdout.
@@ -19,6 +20,8 @@ TOKEN = os.environ['BOTTOKEN']
 COMMAND_PREFIX = '/'
 
 prefix_patterns = [
-    cr.path('state', modstate),
-    cr.path('r', do_dice)
+    cr.path('state <statecontent:*>', modstate),
+    cr.path('r -v <verbose:bool> <roll:*>', do_dice),
+    cr.path('r <roll:*>', do_dice),
+    cr.path('hello', hello)
 ]

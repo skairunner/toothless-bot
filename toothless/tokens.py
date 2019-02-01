@@ -12,12 +12,16 @@ class ProtoToken:
     def __init__(self, name):
         self.name = name
 
+    def __repr__(self):
+        return f'<{self.__class__.__name__}:{self.name}>'
+
     def match(self, string):
         raise TokenMismatch('ProtoToken cannot match anything.')
 
 # A token that is a static string
 class StaticProto(ProtoToken):
     def __init__(self, staticstr):
+        self.name = 'STATIC'
         self.staticstr = staticstr
 
     def verify(self, string):
@@ -35,19 +39,29 @@ class IntProto(ProtoToken):
         try:
             return int(string)
         except ValueError:
-            raise TokenMismatch(f'The string {string} is not a valid integer.')
+            raise TokenMismatch(f'The string "{string}" is not a valid integer.')
 
 class RealProto(ProtoToken):
     def verify(self, string):
         try:
             return float(string)
         except ValueError:
-            raise TokenMismatch(f'The string {string} is not a valid float.')
+            raise TokenMismatch(f'The string "{string}" is not a valid float.')
 
+BOOL_TRUTHY = set(['true', 'yes', 'y', '1'])
+BOOL_FALSEY = set(['false', 'no', 'n', '0'])
+class BoolProto(ProtoToken):
+    def verify(self, string):
+        if string in BOOL_TRUTHY:
+            return True
+        if string in BOOL_FALSEY:
+            return False
+        raise TokenMismatch(f'The string "{string}" is not a valid boolean-y value.')
 
 # This special token 'slurps' all tokens after it.
 class RemainderProto(ProtoToken):
-    pass
+    def verify(self, string):
+        return string
 
 
 class TokenizerState(Enum):
@@ -69,8 +83,6 @@ PROTOTOKENS = {
     'str': StringProto,
     'int': IntProto,
     'real': RealProto,
-    'remain': RemainderProto
+    'bool': BoolProto,
+    '*': RemainderProto
 }
-
-class Token:
-    pass

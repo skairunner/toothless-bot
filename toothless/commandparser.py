@@ -3,7 +3,7 @@ from .argparsers import ARG_PARSERS
 from . import tokens as tok
 
 # used for finding <:> format args
-ARG_PATTERN = re.compile(r'<(?P<name>[A-Za-z_][\w]*):(?P<type>int|str|real)>')
+ARG_PATTERN = re.compile(r'<(?P<name>[A-Za-z_][\w]*):(?P<type>[*\w_]+)>')
 # convert <:> format args into the actual regex to match
 ARG_REGEX_TEMPLATE = '(?P<{name}>{pattern})'
 

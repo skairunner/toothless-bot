@@ -6,7 +6,8 @@ import ssl
 import aiohttp
 import functools
 
-from .commandrouter import match_path
+from .commandrouter import match_path, PathMismatch
+from .commandparser import tokenize
 
 
 class ConfigError(BaseException):
@@ -32,7 +33,10 @@ class Toothless(discord.Client):
     async def on_message(self, message):
         if message.content.startswith(self.commandprefix):
             prefixlen = len(self.commandprefix)
+            tokens = tokenize(message.content[prefixlen:])
             loop = asyncio.get_event_loop()
-            coro = match_path(self.prefix_patterns, self, message, message.content[prefixlen:])
-            if coro:
+            try:
+                coro = match_path(self.prefix_patterns, tokens, self, message)
                 loop.create_task(coro)
+            except PathMismatch:
+                await self.send_message(message.channel, 'Command not recognized.')

@@ -3,6 +3,7 @@ import re
 from .commandparser import parse_pathstr
 from .tokens import TokenMismatch, RemainderProto, StaticProto
 from enum import Enum
+from pprint import pprint
 
 
 # Raised if attempting to () on a Path's inner list, or
@@ -34,6 +35,7 @@ class PathWrappedType(Enum):
 
 class Path:
     def __init__(self, pathstr, inner):
+        self.pathstr = pathstr
         self.prototokens = parse_pathstr(pathstr)
         if callable(inner):
             self.wrapped = PathWrappedType.CALLABLE
@@ -42,6 +44,9 @@ class Path:
         else:
             raise WrongBoxedType(f'Inner object of Path must be type list or a callable. It is actually type {type(inner)}')
         self.inner = inner
+
+    def __str__(self):
+        return f'Path<{self.pathstr}>'
 
     def is_list(self):
         return isinstance(self.inner, list)
@@ -127,12 +132,12 @@ def match_prototokens_to_tokens(prototokens, tokens):
         try:
             results.append(proto.verify(token))
         except TokenMismatch:
-            if isinstance(token, StaticProto):
+            if isinstance(proto, StaticProto):
                 raise PathMismatch(
-                    f'The staticstr {token.staticstr}'
+                    f'The staticstr {proto.staticstr}'
                     f'could not be matched to token "{token}"')
             raise PathMismatch(
-                f'The arg "{arg.name}" could not be matched'
+                f'The arg "{proto.name}" could not be matched'
                 f'to token "{token}"')
     # Return the matches
     return (results, (pathlen, pathlen))
@@ -169,7 +174,7 @@ return to attempting to match against the existing path list.
 def match_path(paths, tokens, client, message):
     for p in paths:
         try:
-            results = match_tokens(p.prototokens, tokens)
+            results = match_tokens(p, tokens)
             # build a name->match dict
             args = {}
             for i, result in enumerate(results):
@@ -190,5 +195,5 @@ A command that has a prefix
 :param message: discord.py Message
 :param chopped: The message content with prefixes removed
 """
-async def example_command(client, message, chopped):
+async def example_command(client, message, **kwargs):
     return
