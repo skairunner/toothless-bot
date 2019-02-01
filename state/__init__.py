@@ -16,6 +16,7 @@ async def modstate(client, message, statecontent):
             await client.send_message(
                 message.channel,
                 f"{author}#{discrim} is not in the sudoers file. This incident will be reported.")
+            break
 
 
 async def do_the_state(client, message, statecontent):
