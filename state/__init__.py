@@ -10,6 +10,12 @@ async def modstate(client, message, statecontent):
         if role.name == 'Protectorate':
             await do_the_state(client, message, statecontent)
             break
+        else:
+            author = message.author.name
+            discrim = message.author.discriminator
+            await client.send_message(
+                message.channel,
+                f"{author}#{discrim} is not in the sudoers file. This incident will be reported.")
 
 
 async def do_the_state(client, message, statecontent):
