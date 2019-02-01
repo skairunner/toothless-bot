@@ -1,8 +1,7 @@
 from tymora import parse
 
 
-async def do_dice(client, message, roll, verbose):
-    print(verbose)
+async def do_dice(client, message, roll, verbose=False):
     try:
         result = parse(roll)
     except Exception as e:
