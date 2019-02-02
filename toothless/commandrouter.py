@@ -99,7 +99,16 @@ includes a prefix_patterns list from the given module
 :param modulename: The import name of the module
 """
 def include(modulename):
-    return getattr(import_module(modulename), 'prefix_patterns')
+    try:
+        return getattr(import_module(modulename + '.patterns'), 'prefix_patterns')
+    except ImportError:
+        try:
+            return getattr(import_module(modulename), 'prefix_patterns')
+        except ImportError:
+            raise ImportError(
+                'Could not find prefix_patterns specified by import'
+                f'"{modulename}" in either patterns.py or the module main.'
+            )
 
 """
 Helper function used by match_tokens. Matches as many tokens as possible

@@ -1,11 +1,11 @@
 import logging
 import os
-from toothless import commandrouter as cr
+from toothless import path, include
 
 from state import modstate
 from tymora_plugin import do_dice
 from hello import hello
-from timers import ping, pong
+from timers import ping, pong, sprint
 
 
 # By default, discord.py is silent to stdout.
@@ -21,10 +21,12 @@ TOKEN = os.environ['BOTTOKEN']
 COMMAND_PREFIX = '?'
 
 prefix_patterns = [
-    cr.path('state <statecontent:*>', modstate),
-    cr.path('r -v <verbose:bool> <roll:*>', do_dice),
-    cr.path('r <roll:*>', do_dice),
-    cr.path('hello', hello),
-    cr.path('ping', ping),
-    cr.path('pong', pong)
+    path('state <statecontent:*>', modstate),
+    path('r -v <verbose:bool> <roll:*>', do_dice),
+    path('r <roll:*>', do_dice),
+    path('hello', hello),
+    path('ping', ping),
+    path('pong', pong),
+    # path('sprint <kind:str> <endtime:date>', None),
+    path('sprint', include('timers')),
 ]

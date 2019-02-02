@@ -1,7 +1,7 @@
 import discord
 import asyncio
 
-from .commandrouter import match_path, PathMismatch
+from .commandrouter import match_path, PathMismatch, path, include
 from .commandparser import tokenize
 
 
