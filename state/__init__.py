@@ -9,7 +9,7 @@ async def modstate(client, message, statecontent):
     for role in message.author.roles:
         if role.name == 'Protectorate':
             await do_the_state(client, message, statecontent)
-            break
+            return
     # if not right role
     author = message.author.name
     discrim = message.author.discriminator
