@@ -1,5 +1,6 @@
 import re
 from enum import Enum
+import dateparser
 
 
 # Raised if a ProtoToken is given an input string that does not match the 
@@ -58,11 +59,26 @@ class BoolProto(ProtoToken):
             return False
         raise TokenMismatch(f'The string "{string}" is not a valid boolean-y value.')
 
+class DateProto(ProtoToken):
+    def verify(self, string):
+        string = string.strip()
+        date = dateparser.parse(string)
+        if date is not None:
+            return date
+        if string.startswith('for '):
+            date = dateparser.parse(string[4:])
+            if date is not None:
+                return date
+        raise TokenMismatch(f'The string "{string}" is not a valid datetime.')
+
 # This special token 'slurps' all tokens after it.
 class RemainderProto(ProtoToken):
     def verify(self, string):
         return string
 
+# Like RemainderProto, but as a date
+class RemainderDateProto(DateProto, RemainderProto):
+    pass
 
 class TokenizerState(Enum):
     NORMAL = 1
@@ -84,5 +100,7 @@ PROTOTOKENS = {
     'int': IntProto,
     'real': RealProto,
     'bool': BoolProto,
-    '*': RemainderProto
+    '*': RemainderProto,
+    'date': DateProto,
+    'date*': RemainderDateProto
 }
