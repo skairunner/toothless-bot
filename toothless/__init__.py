@@ -1,10 +1,5 @@
 import discord
 import asyncio
-import re
-import sqlite3
-import ssl
-import aiohttp
-import functools
 
 from .commandrouter import match_path, PathMismatch
 from .commandparser import tokenize
