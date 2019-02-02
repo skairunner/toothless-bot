@@ -17,7 +17,7 @@ TOKEN = os.environ['BOTTOKEN']
 
 # All prefix commands must start with this sigil.
 # It must be 0 or 1 characters
-COMMAND_PREFIX = '/'
+COMMAND_PREFIX = '?'
 
 prefix_patterns = [
     cr.path('state <statecontent:*>', modstate),

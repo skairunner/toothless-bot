@@ -2,6 +2,7 @@ from importlib import import_module
 import re
 from .commandparser import parse_pathstr
 from .tokens import TokenMismatch, RemainderProto, StaticProto
+from .utils import smart_split
 from enum import Enum
 from pprint import pprint
 
@@ -33,17 +34,36 @@ class PathWrappedType(Enum):
     LIST = 2
 
 
+def curry_inner(inner):
+    async def newinner(*args, **kwargs):
+        msgs = await inner(*args, **kwargs)
+        client = args[0]
+        message = args[1]
+        if isinstance(msgs, str):
+            msgs = smart_split(msgs)
+        if isinstance(msgs, list):
+            for msg in msgs:
+                await client.send_message(
+                    message.channel,
+                    msg
+                )
+    return newinner
+
+
 class Path:
     def __init__(self, pathstr, inner):
         self.pathstr = pathstr
         self.prototokens = parse_pathstr(pathstr)
         if callable(inner):
             self.wrapped = PathWrappedType.CALLABLE
+            self.inner = curry_inner(inner)
         elif isinstance(inner, list):
             self.wrapped = PathWrappedType.LIST
+            self.inner = inner
         else:
-            raise WrongBoxedType(f'Inner object of Path must be type list or a callable. It is actually type {type(inner)}')
-        self.inner = inner
+            raise WrongBoxedType(
+                f'Inner object of Path must be type list or a callable'
+                f'. It is actually type {type(inner)}')
 
     def __str__(self):
         return f'Path<{self.pathstr}>'
@@ -170,8 +190,14 @@ def match_tokens(path, tokens):
 Will try to match. If all input tokens are consumed and the content of the Path
 is a list, attempt to match the remaining tokens to those paths. If it fails,
 return to attempting to match against the existing path list.
+
+:param paths: List of Path to match against
+:param tokens: Input list of tokens
+:param client: The active discord client
+:param message: The discord.py message
+:param timeout: The time after which to send a timeout message and cancel the coroutine.
 """
-def match_path(paths, tokens, client, message):
+def match_path(paths, tokens, client, message, timeout=5):
     for p in paths:
         try:
             results = match_tokens(p, tokens)
@@ -189,11 +215,21 @@ def match_path(paths, tokens, client, message):
     raise PathMismatch('Could not find a path that matches the tokens.')
 
 """
-A command that has a prefix
+A command that uses route matching.
+
+If a list is returned by the function, it will be sent as-is via Discord.py.
+When a message is too long, a 'reply too long' message will be sent instead.
+
+If a string is returned by the function, Toothless will attempt to break it up
+into 2000-ch chunks, respecting tag boundaries and preferring newlines.
+Edit: Discord's markdown implementation is very inconsistent, so formatting
+cannot be preserved over messages.
+
+Otherwise, nothing is output.
 
 :param client: the active discord.py client
 :param message: discord.py Message
-:param chopped: The message content with prefixes removed
+:returns: A list of strings, a string, or None.
 """
 async def example_command(client, message, **kwargs):
     return
