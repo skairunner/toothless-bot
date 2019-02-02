@@ -5,6 +5,7 @@ from toothless import commandrouter as cr
 from state import modstate
 from tymora_plugin import do_dice
 from hello import hello
+from timers import ping, pong
 
 
 # By default, discord.py is silent to stdout.
@@ -23,5 +24,7 @@ prefix_patterns = [
     cr.path('state <statecontent:*>', modstate),
     cr.path('r -v <verbose:bool> <roll:*>', do_dice),
     cr.path('r <roll:*>', do_dice),
-    cr.path('hello', hello)
+    cr.path('hello', hello),
+    cr.path('ping', ping),
+    cr.path('pong', pong)
 ]
