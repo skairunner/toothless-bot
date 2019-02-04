@@ -22,7 +22,12 @@ async def do_the_state(client, message, statecontent):
     if maybematch:
         targetchannelid = maybematch.group(1)
         target_channel = client.get_channel(targetchannelid)
-        statecontent = statecontent[maybematch.end():]
+        # If message is only a channel, treat it as a msg
+        if len(statecontent[maybematch.end():].strip()) == 0:
+            statecontent = target_channel.mention
+            target_channel = message.channel
+        else:
+            statecontent = statecontent[maybematch.end():]
 
     pings = set(re.findall(r'<@!*\d+>', statecontent))
     separator = ' - ' if pings else ''
