@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "b73b362c44f88b0bc055386db23855888578279f402941f259e5df5a53f1f811"
+            "sha256": "1bf385aef0d2841476c7e0987ba5b5b5c9724eb18815e06331f4a3dcac13f5c7"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -53,8 +53,8 @@
             "version": "==3.0.4"
         },
         "dateparser": {
-            "git": "https://github.com/neersighted/tymora.git",
-            "ref": "ec6ada6033ab288550b397bf7dfe3866348d97da"
+            "git": "https://github.com/scrapinghub/dateparser.git",
+            "ref": "6540c33caaf6923c4affedda2ef92b29f814d6fc"
         },
         "discord": {
             "hashes": [
