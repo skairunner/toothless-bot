@@ -7,7 +7,7 @@ verify_ssl = true
 discord = {py = "*"}
 Arpeggio = "*"
 tymora = {git = "https://github.com/neersighted/tymora.git"}
-dateparser = {git = "https://github.com/neersighted/tymora.git"}
+dateparser = {git = "https://github.com/scrapinghub/dateparser.git"}
 
 [requires]
 python_version = "3.6.8"
