@@ -27,6 +27,5 @@ prefix_patterns = [
     path('hello', hello),
     path('ping', ping),
     path('pong', pong),
-    # path('sprint <kind:str> <endtime:date>', None),
     path('sprint', include('timers')),
 ]
