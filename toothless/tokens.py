@@ -1,6 +1,7 @@
 import re
 from enum import Enum
 import dateparser
+import datetime
 
 
 # Raised if a ProtoToken is given an input string that does not match the 
@@ -64,11 +65,11 @@ class DateProto(ProtoToken):
         string = string.strip()
         date = dateparser.parse(string)
         if date is not None:
-            return date
+            return date.astimezone(datetime.timezone.utc)
         if string.startswith('for '):
             date = dateparser.parse(string[4:])
             if date is not None:
-                return date
+                return date.astimezone(datetime.timezone.utc)
         raise TokenMismatch(f'The string "{string}" is not a valid datetime.')
 
 # This special token 'slurps' all tokens after it.
