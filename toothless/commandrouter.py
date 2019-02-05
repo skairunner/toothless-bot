@@ -149,7 +149,10 @@ def match_prototokens_to_tokens(prototokens, tokens):
                     f'to token "{token}"')
         # All tokens have been matched.
         # Join remaining tokens into one string and return
-        results.append(prototokens[-1].verify(' '.join(tokens[pathlen - 1:])))
+        try:
+            results.append(prototokens[-1].verify(' '.join(tokens[pathlen - 1:])))
+        except TokenMismatch as e:
+            raise PathMismatch(e)
         return (results, (pathlen, tokenslen))
     # If there's more protos than tokens, cannot match.
     if pathlen > tokenslen:
