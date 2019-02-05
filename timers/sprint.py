@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 import asyncio
 
 # server: { sprints: {...id : endtime...}, users: {...id: sprint }, count: 0}
@@ -55,7 +55,12 @@ async def start_sprint(client, message, endtime=None):
         timestr = get_sprint_timeleft(sprint)
         loop.create_task(client.edit_message(
             msg, f'Ending in {timestr}.'))
-        await asyncio.sleep(30)
+        if endtime - get_utcnow() < timedelta(seconds=30):
+            time = (endtime - get_utcnow()).seconds
+        else:
+            time = 30
+        await asyncio.sleep(time)
+    loop.create_task(client.edit_message(msg, f'Ending in 00:00:00.'))
     users = list(sprint['users'])
     for user in users:
         storage['users'][user] = None
