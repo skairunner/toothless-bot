@@ -28,7 +28,7 @@ def get_sprint_timeleft(sprint):
 
 def add_user(server, sprintid, user):
     storage = TEMPORARY_STORAGE[server]
-    if user in storage['users']:
+    if user in storage['users'] and storage['users'][user] is not None:
         sprintid = storage['users'][user]
         timestr = get_sprint_timeleft(storage['sprints'][sprintid])
         return f"You're already in sprint {sprintid}, ending in {timestr}."
@@ -37,6 +37,11 @@ def add_user(server, sprintid, user):
     storage['users'][user] = sprintid
     timestr = get_sprint_timeleft(sprint)
     return f'Joined sprint {sprintid} ending in {timestr}.'
+
+def get_storage_by_server(server):
+    if server not in TEMPORARY_STORAGE:
+        TEMPORARY_STORAGE[server] = {'sprints': {}, 'users': {}}
+    return TEMPORARY_STORAGE[server]
 
 """
 Does the counting-down and finishing of the sprint.
@@ -61,19 +66,22 @@ async def count_sprint(client, msg, sprint, sprintid):
         else:
             time = 30
         await asyncio.sleep(time)
+    # again, quit if sprint is over
+    if sprintid not in storage['sprints']:
+        return
     loop.create_task(client.edit_message(msg, f'Ending in 00:00:00.'))
     users = list(sprint['users'])
     for user in users:
         storage['users'][user] = None
     s = ', '.join([x.mention for x in users])
+    del storage[sprintid]
     announce = f':tada: Sprint {sprintid} is over :tada:\n{s}'
     await client.send_message(msg.channel, announce)
 
 async def start_sprint(client, message, endtime=None):
-    server = message.server
-    storage = TEMPORARY_STORAGE.get(server, {'sprints': {}, 'users': {}})
-    TEMPORARY_STORAGE[server] = storage
     sprintid = inc_counter()
+    server = message.server
+    storage = get_storage_by_server(server)
     # Not already in a sprint, can create
     storage['sprints'][sprintid] = {'ends': endtime, 'users': set()}
     sprint = storage['sprints'][sprintid]
@@ -85,7 +93,16 @@ async def start_sprint(client, message, endtime=None):
     loop.create_task(count_sprint(client, msg, sprint, sprintid))
 
 async def stop_sprint(client, message, sprintid=-1):
-    return 'stop_sprint()'
+    storage = get_storage_by_server(message.server)
+    if sprintid not in storage['sprints']:
+        return f'Sprint {sprintid} is not running.'
+    # Stop the sprint and report time left
+    sprint = storage['sprints'][sprintid]
+    timestr = get_sprint_timeleft(sprint)
+    for user in sprint['users']:
+        storage['users'][user] = None
+    del storage['sprints'][sprintid]
+    return f'Sprint {sprintid} stopped with {timestr} left :pensive:'
 
 async def join_sprint(client, message, sprintid=-1):
     return 'join_sprint()'
