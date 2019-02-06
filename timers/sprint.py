@@ -38,6 +38,37 @@ def add_user(server, sprintid, user):
     timestr = get_sprint_timeleft(sprint)
     return f'Joined sprint {sprintid} ending in {timestr}.'
 
+"""
+Does the counting-down and finishing of the sprint.
+
+:param client: the discord.py client
+:param msg: The announcement message to be edited with times
+:param sprint: the sprint object
+"""
+async def count_sprint(client, msg, sprint, sprintid):
+    storage = TEMPORARY_STORAGE[msg.server]
+    endtime = sprint['ends']
+    loop = asyncio.get_event_loop()
+    while get_utcnow() < endtime:
+        # Quit if sprint is over
+        if sprintid not in storage['sprints']:
+            return
+        timestr = get_sprint_timeleft(sprint)
+        loop.create_task(client.edit_message(
+            msg, f'Ending in {timestr}.'))
+        if endtime - get_utcnow() < timedelta(seconds=30):
+            time = (endtime - get_utcnow()).seconds + 1
+        else:
+            time = 30
+        await asyncio.sleep(time)
+    loop.create_task(client.edit_message(msg, f'Ending in 00:00:00.'))
+    users = list(sprint['users'])
+    for user in users:
+        storage['users'][user] = None
+    s = ', '.join([x.mention for x in users])
+    announce = f':tada: Sprint {sprintid} is over :tada:\n{s}'
+    await client.send_message(msg.channel, announce)
+
 async def start_sprint(client, message, endtime=None):
     server = message.server
     storage = TEMPORARY_STORAGE.get(server, {'sprints': {}, 'users': {}})
@@ -51,21 +82,7 @@ async def start_sprint(client, message, endtime=None):
     await client.send_message(message.channel, f'Sprint {sprintid} started.')
     loop.create_task(client.send_message(message.channel, f'{sprintid}'))
     msg = await client.wait_for_message(content=f'{sprintid}', author=client.user)
-    while get_utcnow() < endtime:
-        timestr = get_sprint_timeleft(sprint)
-        loop.create_task(client.edit_message(
-            msg, f'Ending in {timestr}.'))
-        if endtime - get_utcnow() < timedelta(seconds=30):
-            time = (endtime - get_utcnow()).seconds
-        else:
-            time = 30
-        await asyncio.sleep(time)
-    loop.create_task(client.edit_message(msg, f'Ending in 00:00:00.'))
-    users = list(sprint['users'])
-    for user in users:
-        storage['users'][user] = None
-    s = ', '.join([x.mention for x in users])
-    return f':tada: Sprint {sprintid} is over :tada:\n{s}'
+    loop.create_task(count_sprint(client, msg, sprint, sprintid))
 
 async def stop_sprint(client, message, sprintid=-1):
     return 'stop_sprint()'
