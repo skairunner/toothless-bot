@@ -28,4 +28,5 @@ prefix_patterns = [
     path('ping', ping),
     path('pong', pong),
     path('sprint', include('timers')),
+    path('s', include('timers')),
 ]

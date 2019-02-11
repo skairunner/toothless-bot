@@ -1,5 +1,6 @@
 from datetime import datetime, timezone, timedelta
 import asyncio
+import config
 
 # server: { sprints: {...id : endtime...}, users: {...id: sprint }, count: 0}
 TEMPORARY_STORAGE = {}  # Until a permanent solution found
@@ -32,7 +33,10 @@ def add_user(server, sprintid, user):
         sprintid = storage['users'][user]
         timestr = get_sprint_timeleft(storage['sprints'][sprintid])
         return f"You're already in sprint {sprintid}, ending in {timestr}."
-    sprint = storage['sprints'][sprintid]
+    try:
+        sprint = storage['sprints'][sprintid]
+    except KeyError:
+        return f"Couldn't find sprint {sprintid}"
     sprint['users'].add(user)
     storage['users'][user] = sprintid
     timestr = get_sprint_timeleft(sprint)
@@ -42,6 +46,23 @@ def get_storage_by_server(server):
     if server not in TEMPORARY_STORAGE:
         TEMPORARY_STORAGE[server] = {'sprints': {}, 'users': {}}
     return TEMPORARY_STORAGE[server]
+
+def remove_user(server, user):
+    storage = TEMPORARY_STORAGE[server]
+    if user in storage['users']:
+        if storage['users'][user] is not None:
+            sprintid = storage['users'][user]
+            storage['users'][user] = None
+            try:
+                sprint = storage['sprints'][sprintid]
+            except KeyError:
+                return f"You're not in a sprint."
+            try:
+                sprint['users'].remove(user)
+            except KeyError:
+                pass  # can ignore key missing
+            return f"Left sprint <:giveup:308861076668416000>"
+    return "You're not in a sprint."
 
 """
 Does the counting-down and finishing of the sprint.
@@ -74,7 +95,7 @@ async def count_sprint(client, msg, sprint, sprintid):
     for user in users:
         storage['users'][user] = None
     s = ', '.join([x.mention for x in users])
-    del storage[sprintid]
+    del storage['sprints'][sprintid]
     announce = f':tada: Sprint {sprintid} is over :tada:\n{s}'
     await client.send_message(msg.channel, announce)
 
@@ -105,7 +126,7 @@ async def stop_sprint(client, message, sprintid=-1):
     return f'Sprint {sprintid} stopped with {timestr} left :pensive:'
 
 async def join_sprint(client, message, sprintid=-1):
-    return 'join_sprint()'
+    return add_user(message.server, sprintid, message.author)
 
-async def leave_sprint(client, message, sprintid=-1):
-    return 'leave_sprint()'
+async def leave_sprint(client, message):
+    return remove_user(message.server, message.author)
