@@ -15,6 +15,12 @@ def inc_counter():
 def get_utcnow():
     return datetime.now(timezone.utc)
 
+def is_already_in_sprint(server, user):
+    storage = TEMPORARY_STORAGE[server]
+    if user not in storage['users']:
+        return False
+    return storage['users'][user] is not None
+
 def get_timedelta_string(delta):
     seconds = delta.seconds
     hoursleft = seconds // 3600
@@ -29,7 +35,7 @@ def get_sprint_timeleft(sprint):
 
 def add_user(server, sprintid, user):
     storage = TEMPORARY_STORAGE[server]
-    if user in storage['users'] and storage['users'][user] is not None:
+    if is_already_in_sprint(server, user):
         sprintid = storage['users'][user]
         timestr = get_sprint_timeleft(storage['sprints'][sprintid])
         return f"You're already in sprint {sprintid}, ending in {timestr}."
@@ -103,6 +109,8 @@ async def start_sprint(client, message, endtime=None):
     sprintid = inc_counter()
     server = message.server
     storage = get_storage_by_server(server)
+    if is_already_in_sprint(server, message.author):
+        return "You're already in a sprint."
     # Not already in a sprint, can create
     storage['sprints'][sprintid] = {'ends': endtime, 'users': set()}
     sprint = storage['sprints'][sprintid]
