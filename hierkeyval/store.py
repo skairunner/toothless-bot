@@ -9,9 +9,9 @@ The improved version should probably only support custom HDict and HList
 objects to prevent this kind of bug
 """
 class HierarchicalStore:
-    store_global = {}
-    store_server = {}
-    store_channel = {}
+    sglobal = {}
+    sserver = {}
+    schannel = {}
     filename = None
     fileobj = None
 
@@ -20,9 +20,28 @@ class HierarchicalStore:
             self.fileobj = filename_or_obj
         elif isinstance(filename_or_obj, str):
             self.filename = filename_or_obj
+            # Also attempt to load from file
+            try:
+                with open(self.filename, 'r') as f:
+                    d = json.load(f)
+                self.sglobal, self.sserver, self.schannel = d
+                if not isinstance(self.sglobal, dict) \
+                        or not isinstance(self.sserver, dict) \
+                        or not isinstance(self.schannel, dict):
+                    # if any of the data is not the right type, reset
+                    self.sglobal, self.sserver, self.schannel = {}, {}, {}
+            # well, we tried
+            except FileNotFoundError:
+                pass
+            except json.decoder.JSONDecodeError:
+                pass
+            except TypeError:
+                pass  # obj is not a list
+            except ValueError:
+                pass  # obj has too many/too few elements
         else:
             raise ValueError('filename_or_obj should be a filename or fileobj')
-        self.dicts = [self.store_global, self.store_server, self.store_channel]
+        self.dicts = [self.sglobal, self.sserver, self.schannel]
 
     def flush(self):
         if self.filename is None:
@@ -81,11 +100,11 @@ class HierarchicalStore:
     """
     def set_val(self, namespace, level, key, val):
         if level == 'g':
-            d = self.store_global
+            d = self.sglobal
         elif level == 's':
-            d = self.store_server
+            d = self.sserver
         elif level == 'c':
-            d = self.store_channel
+            d = self.schannel
         if namespace not in d:
             d[namespace] = {}
         d[namespace][key] = val
