@@ -50,10 +50,12 @@ class RealProto(ProtoToken):
         except ValueError:
             raise TokenMismatch(f'The string "{string}" is not a valid float.')
 
+
 BOOL_TRUTHY = set(['true', 'yes', 'y', '1'])
 BOOL_FALSEY = set(['false', 'no', 'n', '0'])
 class BoolProto(ProtoToken):
-    def verify(self, string):
+    @staticmethod
+    def verify(string):
         if string in BOOL_TRUTHY:
             return True
         if string in BOOL_FALSEY:
@@ -61,13 +63,14 @@ class BoolProto(ProtoToken):
         raise TokenMismatch(f'The string "{string}" is not a valid boolean-y value.')
 
 class DateProto(ProtoToken):
-    def verify(self, string):
+    @staticmethod
+    def verify(string):
         string = string.strip()
         date = dateparser.parse(string)
         if date is not None:
             return date.astimezone(datetime.timezone.utc)
         if string.startswith('for '):
-            date = dateparser.parse(string[4:])
+            date = dateparser.parse('in ' + string[4:])
             if date is not None:
                 return date.astimezone(datetime.timezone.utc)
         raise TokenMismatch(f'The string "{string}" is not a valid datetime.')
