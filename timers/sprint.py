@@ -67,7 +67,11 @@ def remove_user(server, user):
                 sprint['users'].remove(user)
             except KeyError:
                 pass  # can ignore key missing
-            return f"Left sprint <:giveup:544502573617512448>"
+            reply = f"Left sprint <:giveup:544502573617512448>"
+            if len(sprint['users']) == 0:
+                del storage['sprints'][sprintid]
+                reply += '\nNo users left in sprint. Ending :sob:'
+            return reply
     return "You're not in a sprint."
 
 """
