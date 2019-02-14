@@ -9,16 +9,23 @@ The improved version should probably only support custom HDict and HList
 objects to prevent this kind of bug
 """
 class HierarchicalStore:
-    sglobal = {}  # a 'flat' dict
-    sserver = {}  # Key is namespace, then serv
-    schannel = {}  # Same
     filename = None
     fileobj = None
 
-    def __init__(self, filename_or_obj):
+    """
+    :param filename_or_obj: A filename or a fileobj to persist in
+    :param transforms: Any additional transforms for ident parsing
+    """
+    def __init__(self, filename_or_obj, transforms={}):
         self.sglobal = {}
         self.sserver = {}
         self.schannel = {}
+        self.ident_transforms = {
+            'g': lambda x: x,
+            's': lambda x: x,
+            'c': lambda x: x
+        }
+        self.ident_transforms.update(transforms)
         if isinstance(filename_or_obj, io.StringIO):
             self.fileobj = filename_or_obj
         elif isinstance(filename_or_obj, str):
@@ -66,13 +73,14 @@ class HierarchicalStore:
     def get_dict_and_ident(self, level, identifier):
         if level == 'g':
             d = self.sglobal
-            ident = None
         elif level == 's':
             d = self.sserver
-            ident = identifier.server
+            if identifier:
+                ident = self.ident_transforms['s'](identifier.server)
         elif level == 'c':
             d = self.schannel
-            ident = identifier.channel
+            if identifier:
+                ident = self.ident_transforms['c'](identifier.channel)
         else:
             raise ValueError(f'Param level must be one of g, s, c, but is "{level}".')
 
@@ -135,7 +143,10 @@ class NamespacedHStore:
         return self.hsv.set_val(level, self.namespace, identifier, key, val)
 
 
-DEFAULT = HierarchicalStore('default.hkv')
+DEFAULT = HierarchicalStore(
+    'default.hkv',
+    transforms={'s': lambda x: x.id, 'c': lambda x: x.id}
+)
 
 def get_default(namespace=None):
     if namespace:
