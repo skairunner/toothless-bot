@@ -55,3 +55,9 @@ def test_delete_value():
     NHKV.del_val('s', ident, 'key')
     with pytest.raises(KeyError):
         NHKV.get_val('s', ident, 'key')
+
+def test_get_default():
+    HKV = HierarchicalStore(io.StringIO())
+    NHKV = HKV.as_namespace('test')
+    assert NHKV.get_default('c', 'myident', 'key', 123) == 123
+    assert NHKV.get_val_ident('c', 'myident', 'key') == 123

@@ -118,6 +118,15 @@ class HierarchicalStore:
             f'namespace {namespace}, level {level}')
 
     """
+    Like get_val_ident but provides a default.
+    """
+    def get_default(self, level, namespace, ident, key, default):
+        try:
+            return self.get_val_ident(level, namespace, ident, key)
+        except KeyError:
+            self.set_val(level, namespace, ident, key, default, hasident=True)
+            return default
+    """
     Set a value.
 
     :param level: One of 'g', 's', or 'c', the level to store at
@@ -180,6 +189,9 @@ class NamespacedHStore:
 
     def del_val(self, level, identifier, key, hasident=False):
         return self.hsv.del_val(level, self.namespace, identifier, key, hasident)
+
+    def get_default(self, level, ident, key, default):
+        return self.hsv.get_default(level, self.namespace, ident, key, default)
 
 
 DEFAULT = HierarchicalStore(
