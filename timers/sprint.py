@@ -1,15 +1,14 @@
 from datetime import datetime, timezone, timedelta
 import asyncio
-import config
+from hierkeyval import get_default
 
 # server: { sprints: {...id : endtime...}, users: {...id: sprint }, count: 0}
-TEMPORARY_STORAGE = {}  # Until a permanent solution found
-SPRINT_COUNTER = 0
+TEMPORARY_STORAGE = get_default('sprints')  # Until a permanent solution found
 
-def inc_counter():
-    global SPRINT_COUNTER
-    SPRINT_COUNTER += 1
-    return SPRINT_COUNTER - 1
+def inc_counter(msg):
+    counter = TEMPORARY_STORAGE.get_val('s', msg, 'sprint counter')
+    TEMPORARY_STORAGE.set_val('s', msg, 'sprint counter', counter + 1)
+    return counter
 
 # returns a tz-aware utc tz datetime obj
 def get_utcnow():

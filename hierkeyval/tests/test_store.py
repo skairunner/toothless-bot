@@ -39,3 +39,9 @@ def test_saves_after_write():
     f.seek(0)
     obj = json.load(f)
     assert obj[1]['test']['server']['key'] == 123
+
+def test_provide_ident_directly():
+    HKV = HierarchicalStore(io.StringIO())
+    NHKV = HKV.as_namespace('test')
+    NHKV.set_val('s', 'myident', 'key', 5, hasident=True)
+    assert NHKV.get_val_ident('s', 'myident', 'key') == 5

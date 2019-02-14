@@ -70,7 +70,8 @@ class HierarchicalStore:
         except KeyError:
             return False
 
-    def get_dict_and_ident(self, level, identifier):
+    def get_dict_and_ident(self, level, identifier=None):
+        ident = None
         if level == 'g':
             d = self.sglobal
         elif level == 's':
@@ -104,19 +105,42 @@ class HierarchicalStore:
                 continue
             except TypeError:
                 continue
-        raise KeyError(f'Could not find {key} in namespace {namespace}.')
+        raise KeyError(
+            f'Could not find key {key} with ident {ident}, '
+            f'namespace {namespace}, level {level}')
+
+    """
+    Like get_val but always using one ident
+    """
+    def get_val_ident(self, level, namespace, ident, key):
+        d, _ = self.get_dict_and_ident(level)
+        try:
+            return d[namespace][ident][key]
+        except KeyError:
+            pass
+        except TypeError:
+            pass
+        raise KeyError(
+            f'Could not find key {key} with ident {ident}, '
+            f'namespace {namespace}, level {level}')
 
     """
     Set a value.
 
     :param level: One of 'g', 's', or 'c', the level to store at
     :param namespace: Namespace
-    :param identifier: Obj to extract server/channel from
+    :param identifier: Obj to extract server/channel from, or an ident
     :param key: The key to store at
     :param val: The value to store
+    :param hasident: If True, will use ident without processing it
     """
-    def set_val(self, level, namespace, identifier, key, val):
-        d, ident = self.get_dict_and_ident(level, identifier)
+    def set_val(self, level, namespace, identifier, key, val, hasident=False):
+        if hasident:
+            d, _ = self.get_dict_and_ident(level)
+            ident = identifier
+        else:
+            d, ident = self.get_dict_and_ident(level, identifier)
+
         if namespace not in d:
             d[namespace] = {ident: {}}
         if ident not in d[namespace]:
@@ -139,8 +163,11 @@ class NamespacedHStore:
     def get_val(self, levels, identifier, key):
         return self.hsv.get_val(levels, self.namespace, identifier, key)
 
-    def set_val(self, level, identifier, key, val):
-        return self.hsv.set_val(level, self.namespace, identifier, key, val)
+    def get_val_ident(self, level, ident, key):
+        return self.hsv.get_val_ident(level, self.namespace, ident, key)
+
+    def set_val(self, level, identifier, key, val, hasident=False):
+        return self.hsv.set_val(level, self.namespace, identifier, key, val, hasident)
 
 
 DEFAULT = HierarchicalStore(
