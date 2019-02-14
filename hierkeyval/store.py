@@ -63,13 +63,6 @@ class HierarchicalStore:
             f = open(self.filename, 'w')
         json.dump([x for x in self.dicts.values()], f)
 
-    def has_key(self, namespace, mask, key):
-        try:
-            self.get_val(namespace, mask, key)
-            return True
-        except KeyError:
-            return False
-
     def get_dict_and_ident(self, level, identifier=None):
         ident = None
         if level == 'g':
@@ -148,6 +141,22 @@ class HierarchicalStore:
         d[namespace][ident][key] = val
         self.flush()
 
+    def del_val(self, level, namespace, identifier, key, hasident=False):
+        if hasident:
+            d, _ = self.get_dict_and_ident(level)
+            ident = identifier
+        else:
+            d, ident = self.get_dict_and_ident(level, identifier)
+
+        if namespace not in d:
+            d[namespace] = {ident: {}}
+        val = None
+        if ident in d[namespace]:
+            val = d[namespace][ident]
+            del d[namespace][ident]
+        self.flush()
+        return val
+
     def as_namespace(self, namespace):
         return NamespacedHStore(self, namespace)
 
@@ -168,6 +177,9 @@ class NamespacedHStore:
 
     def set_val(self, level, identifier, key, val, hasident=False):
         return self.hsv.set_val(level, self.namespace, identifier, key, val, hasident)
+
+    def del_val(self, level, identifier, key, hasident=False):
+        return self.hsv.del_val(level, self.namespace, identifier, key, hasident)
 
 
 DEFAULT = HierarchicalStore(

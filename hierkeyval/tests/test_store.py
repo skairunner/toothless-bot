@@ -1,4 +1,5 @@
 from hierkeyval import HierarchicalStore
+import pytest
 import io
 import json
 
@@ -45,3 +46,12 @@ def test_provide_ident_directly():
     NHKV = HKV.as_namespace('test')
     NHKV.set_val('s', 'myident', 'key', 5, hasident=True)
     assert NHKV.get_val_ident('s', 'myident', 'key') == 5
+
+def test_delete_value():
+    HKV = HierarchicalStore(io.StringIO())
+    NHKV = HKV.as_namespace('test')
+    NHKV.set_val('s', ident, 'key', 421)
+    assert NHKV.get_val('s', ident, 'key') == 421
+    NHKV.del_val('s', ident, 'key')
+    with pytest.raises(KeyError):
+        NHKV.get_val('s', ident, 'key')
