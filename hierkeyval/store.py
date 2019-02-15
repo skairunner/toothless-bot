@@ -1,5 +1,6 @@
 import io
 import json
+import os
 
 """
 DO NOT edit objects retrieved
@@ -55,13 +56,23 @@ class HierarchicalStore:
 
     def flush(self):
         if self.filename is None:
-            # It's a StringIO obj, truncate
-            self.fileobj.truncate(0)
-            self.fileobj.seek(0)
+            # It's a StringIO obj, make new
+            f = io.StringIO()
             f = self.fileobj
         else:
-            f = open(self.filename, 'w')
+            head, tail = os.path.split(self.filename)
+            swppath = os.path.join(head, '.__' + tail)
+            f = open(swppath, 'w')
         json.dump([x for x in self.dicts.values()], f)
+        # If success, swap files
+        if isinstance(f, io.StringIO):
+            self.fileobj.truncate(0)
+            self.fileobj.seek(0)
+            f.seek(0)
+            self.fileobj.write(f.read())
+        else:
+            # Swap files
+            os.replace(swppath, self.filename)
 
     def get_dict_and_ident(self, level, identifier=None):
         ident = None
