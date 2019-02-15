@@ -23,5 +23,5 @@ async def pong(client, message):
     ms = diff.microseconds // 1000
     us = diff.microseconds % 1000
     await client.edit_message(
-        response, f'Latency: {days} days {hours} hours {minutes} '
-        f'minutes {diff.seconds} seconds {ms}ms {us}μs')
+            response, f':ping_pong:: {days} :calendar: {hours} :hourglass:'
+            f'{minutes} :horse_racing: {diff.seconds} :stopwatch: {ms}ms {us}μs')
