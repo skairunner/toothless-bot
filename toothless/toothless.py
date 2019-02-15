@@ -1,8 +1,10 @@
 import asyncio
 import discord
+from importlib import import_module
 
 from .commandparser import tokenize
 from .commandrouter import match_path, PathMismatch
+from .eventhandlers import ON_START
 from . import configwrapper as config
 
 
@@ -20,6 +22,12 @@ class Toothless(discord.Client):
 
     async def on_ready(self):
         print(f'Logged in as {self.user.name}')
+        loop = asyncio.get_event_loop()
+        for name in config.event_handler_modules:
+            import_module(name)
+
+        for handler in ON_START:
+            loop.create_task(handler(self))
 
     async def on_message(self, message):
         if message.content.startswith(self.commandprefix):

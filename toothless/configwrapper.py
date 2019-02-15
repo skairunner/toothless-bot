@@ -13,4 +13,7 @@ COMMAND_PREFIX = '/'
 # Must specify routes in config
 prefix_patterns = []
 
+# Specify names of modules to import on load to activate event handlers
+event_handler_modules = []
+
 from config import *
