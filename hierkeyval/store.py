@@ -1,6 +1,6 @@
 import io
-import json
 import os
+import pickle
 
 """
 DO NOT edit objects retrieved
@@ -27,14 +27,14 @@ class HierarchicalStore:
             'c': lambda x: x
         }
         self.ident_transforms.update(transforms)
-        if isinstance(filename_or_obj, io.StringIO):
+        if isinstance(filename_or_obj, io.BytesIO):
             self.fileobj = filename_or_obj
         elif isinstance(filename_or_obj, str):
             self.filename = filename_or_obj
             # Also attempt to load from file
             try:
-                with open(self.filename, 'r') as f:
-                    d = json.load(f)
+                with open(self.filename, 'rb') as f:
+                    d = pickle.load(f)
                 self.sglobal, self.sserver, self.schannel = d
                 if not isinstance(self.sglobal, dict) \
                         or not isinstance(self.sserver, dict) \
@@ -44,7 +44,7 @@ class HierarchicalStore:
             # well, we tried
             except FileNotFoundError:
                 pass
-            except json.decoder.JSONDecodeError:
+            except pickle.UnpicklingError:
                 pass
             except TypeError:
                 pass  # obj is not a list
@@ -56,16 +56,16 @@ class HierarchicalStore:
 
     def flush(self):
         if self.filename is None:
-            # It's a StringIO obj, make new
-            f = io.StringIO()
+            # It's a BytesIO obj, make new
+            f = io.BytesIO()
             f = self.fileobj
         else:
             head, tail = os.path.split(self.filename)
             swppath = os.path.join(head, '.__' + tail)
-            f = open(swppath, 'w')
-        json.dump([x for x in self.dicts.values()], f)
+            f = open(swppath, 'wb')
+        pickle.dump([x for x in self.dicts.values()], f)
         # If success, swap files
-        if isinstance(f, io.StringIO):
+        if isinstance(f, io.BytesIO):
             self.fileobj.truncate(0)
             self.fileobj.seek(0)
             f.seek(0)
@@ -203,6 +203,9 @@ class NamespacedHStore:
 
     def get_default(self, level, ident, key, default):
         return self.hsv.get_default(level, self.namespace, ident, key, default)
+
+    def flush(self):
+        return self.hsv.flush()
 
 
 DEFAULT = HierarchicalStore(
