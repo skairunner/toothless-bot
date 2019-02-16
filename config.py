@@ -16,6 +16,10 @@ logging.basicConfig(level=logging.INFO)
 # It must be 0 or 1 characters
 COMMAND_PREFIX = '?'
 
+event_handler_modules = [
+    'timers.sprint'
+]
+
 prefix_patterns = [
     path('state <statecontent:*>', modstate),
     path('r -v <verbose:bool> <roll:*>', do_dice),
@@ -23,6 +27,6 @@ prefix_patterns = [
     path('hello', hello),
     path('ping', ping),
     path('pong', pong),
-    path('sprint', include('timers')),
-    path('s', include('timers')),
+    path('sprint', include('timers.sprint')),
+    path('s', include('timers.sprint')),
 ]

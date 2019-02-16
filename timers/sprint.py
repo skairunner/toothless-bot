@@ -1,10 +1,17 @@
 from datetime import datetime, timezone, timedelta
 import asyncio
-from toothless import path
+from toothless import on_start, path
 from hierkeyval import get_default
 
 # server: { sprints: {...id : endtime...}, users: {...id: sprint }, count: 0}
 TEMPORARY_STORAGE = get_default('sprints')  # Until a permanent solution found
+
+# Clear all existing sprints on start
+@on_start
+async def initialize(client):
+    for server in client.servers:
+        TEMPORARY_STORAGE.del_val('s', server.id, 'sprints', hasident=True)
+        TEMPORARY_STORAGE.del_val('s', server.id, 'users', hasident=True)
 
 def inc_counter(msg):
     counter = TEMPORARY_STORAGE.get_default('s', msg.server.id, 'sprint counter', 0)
