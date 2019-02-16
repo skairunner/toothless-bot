@@ -1,5 +1,6 @@
 from datetime import datetime, timezone, timedelta
 import asyncio
+from toothless import path
 from hierkeyval import get_default
 
 # server: { sprints: {...id : endtime...}, users: {...id: sprint }, count: 0}
@@ -147,3 +148,11 @@ async def join_sprint(client, message, sprintid=-1):
 
 async def leave_sprint(client, message):
     return remove_user(message.server, message.author)
+
+prefix_patterns = [
+    path('<endtime:date*>', start_sprint),
+    path('start <endtime:date*>', start_sprint),
+    path('stop <sprintid:int>', stop_sprint),
+    path('join <sprintid:int>', join_sprint),
+    path('giveup', leave_sprint)
+]
