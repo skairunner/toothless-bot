@@ -62,23 +62,34 @@ class BoolProto(ProtoToken):
             return False
         raise TokenMismatch(f'The string "{string}" is not a valid boolean-y value.')
 
-class DateProto(ProtoToken):
+# Unlike DateProto, RawDateProto returns naive date objects
+class RawDateProto(ProtoToken):
     @staticmethod
     def verify(string):
         string = string.strip()
         date = dateparser.parse(string)
         if date is not None:
-            return date.astimezone(datetime.timezone.utc)
+            return date
         if string.startswith('for '):
             date = dateparser.parse('in ' + string[4:])
             if date is not None:
-                return date.astimezone(datetime.timezone.utc)
+                return date
         raise TokenMismatch(f'The string "{string}" is not a valid datetime.')
+
+class DateProto(RawDateProto):
+    @staticmethod
+    def verify(string):
+        date = super().verify(string)
+        return date.astimezone(datetime.timezone.utc)
 
 # This special token 'slurps' all tokens after it.
 class RemainderProto(ProtoToken):
     def verify(self, string):
         return string
+
+# Like RawDateProto but slurps
+class RemainderRawDateProto(RawDateProto, RemainderProto):
+    pass
 
 # Like RemainderProto, but as a date
 class RemainderDateProto(DateProto, RemainderProto):
@@ -105,6 +116,8 @@ PROTOTOKENS = {
     'real': RealProto,
     'bool': BoolProto,
     '*': RemainderProto,
+    'rawdate': RawDateProto,
     'date': DateProto,
+    'rawdate*': RemainderRawDateProto,
     'date*': RemainderDateProto
 }
