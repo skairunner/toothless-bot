@@ -16,6 +16,9 @@ logging.basicConfig(level=logging.INFO)
 # It must be 0 or 1 characters
 COMMAND_PREFIX = '?'
 
+# More dangerous, but prevents unexpected downtime
+GRACEFULLY_CATCH_EXCEPTIONS = True
+
 event_handler_modules = [
     'timers.sprint'
 ]

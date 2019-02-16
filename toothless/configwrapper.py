@@ -16,4 +16,9 @@ prefix_patterns = []
 # Specify names of modules to import on load to activate event handlers
 event_handler_modules = []
 
+# If True, will never crash on exception in a route handler.
+# Warning: This may cause corruption of data or invalid state, depending on
+# the plugin in question
+GRACEFULLY_CATCH_EXCEPTIONS = False
+
 from config import *

@@ -1,6 +1,7 @@
 import asyncio
 import discord
 from importlib import import_module
+import traceback
 
 from .commandparser import tokenize
 from .commandrouter import match_path, PathMismatch
@@ -39,3 +40,8 @@ class Toothless(discord.Client):
                 loop.create_task(coro)
             except PathMismatch:
                 await self.send_message(message.channel, 'Command not recognized.')
+            except BaseException as e:
+                if config.GRACEFULLY_CATCH_EXCEPTIONS:
+                    traceback.print_exc()
+                else:
+                    raise e
