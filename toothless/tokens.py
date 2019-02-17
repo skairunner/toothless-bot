@@ -77,8 +77,7 @@ class RawDateProto(ProtoToken):
         raise TokenMismatch(f'The string "{string}" is not a valid datetime.')
 
 class DateProto(RawDateProto):
-    @staticmethod
-    def verify(string):
+    def verify(self, string):
         date = super().verify(string)
         return date.astimezone(datetime.timezone.utc)
 
