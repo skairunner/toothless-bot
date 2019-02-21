@@ -26,6 +26,9 @@ class StaticProto(ProtoToken):
         self.name = 'STATIC'
         self.staticstr = staticstr
 
+    def __repr__(self):
+        return f'<{self.__class__.__name__}:{self.staticstr}>'
+
     def verify(self, string):
         if self.staticstr != string:
             raise TokenMismatch()
@@ -77,8 +80,9 @@ class RawDateProto(ProtoToken):
         raise TokenMismatch(f'The string "{string}" is not a valid datetime.')
 
 class DateProto(RawDateProto):
-    def verify(self, string):
-        date = super().verify(string)
+    @staticmethod
+    def verify(string):
+        date = RawDateProto.verify(string)
         return date.astimezone(datetime.timezone.utc)
 
 # This special token 'slurps' all tokens after it.

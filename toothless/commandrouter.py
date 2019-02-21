@@ -65,22 +65,26 @@ class Path:
                 f'Inner object of Path must be type list or a callable'
                 f'. It is actually type {type(inner)}')
 
-    def __str__(self):
+    def __repr__(self):
         return f'Path<{self.pathstr}>'
 
     def is_list(self):
-        return isinstance(self.inner, list)
+        try:
+            iter(self.inner)
+            return True
+        except TypeError:
+            return False
 
     def __call__(self, *args, **kwargs):
         if not callable(self.inner):
-            raise WrongBoxedType('The boxed type is not callable.')
+            raise WrongBoxedType(f'{repr(self)}: The boxed type is not callable.\n{self.inner}')
         return self.inner(*args, **kwargs)
 
     def __iter__(self):
         try:
             return iter(self.inner)
         except TypeError:
-            raise WrongBoxedType('The boxed type is not iterable')
+            raise WrongBoxedType(f'{repr(self)}: The boxed type is not iterable')
 
 
 """
@@ -100,15 +104,11 @@ includes a prefix_patterns list from the given module
 """
 def include(modulename):
     try:
-        return getattr(import_module(modulename + '.patterns'), 'prefix_patterns')
+        return getattr(import_module(modulename), 'prefix_patterns')
     except ImportError:
-        try:
-            return getattr(import_module(modulename), 'prefix_patterns')
-        except ImportError:
-            raise ImportError(
-                'Could not find prefix_patterns specified by import'
-                f'"{modulename}" in either patterns.py or the module main.'
-            )
+        raise ImportError(
+            'Could not find prefix_patterns specified by import "{modulename}"'
+        )
 
 """
 Helper function used by match_tokens. Matches as many tokens as possible
@@ -204,7 +204,7 @@ is a list, attempt to match the remaining tokens to those paths. If it fails,
 return to attempting to match against the existing path list.
 
 :param paths: List of Path to match against
-:param tokens: Input list of tokens
+:param tokens: Input list of strings that represent tokens
 :param client: The active discord client
 :param message: The discord.py message
 :param timeout: The time after which to send a timeout message and cancel the coroutine.
@@ -213,6 +213,9 @@ def match_path(paths, tokens, client, message, timeout=5):
     for p in paths:
         try:
             results = match_tokens(p, tokens)
+            # If match success but inner is a list, continue matching
+            if p.wrapped == PathWrappedType.LIST:
+                raise ContinueMatching('Fully matched tokens, but inner is a list.')
             # build a name->match dict
             args = {}
             for i, result in enumerate(results):
@@ -223,7 +226,10 @@ def match_path(paths, tokens, client, message, timeout=5):
             # This path doesn't match. Go to next.
             continue
         except ContinueMatching:
-            return match_path(p.inner, tokens[len(p.prototokens):], client, message)
+            try:
+                return match_path(p.inner, tokens[len(p.prototokens):], client, message)
+            except PathMismatch:
+                continue
     raise PathMismatch('Could not find a path that matches the tokens.')
 
 """
