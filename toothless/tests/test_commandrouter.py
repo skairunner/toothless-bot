@@ -70,3 +70,12 @@ def test_nested_path_failure_returns_to_top():
     ]
     tokens = ['foo']
     assert run(cr.match_path(paths, tokens, {}, {})) == 'foo'
+
+# a path that is '' should always pass thru
+def test_empty_prototoken_passes_through():
+    # import rpdb2; rpdb2.start_embedded_debugger('1234')
+    paths = [
+        path('', [path('foo', lambda x, y: 'foo')])
+    ]
+    tokens = ['foo']
+    assert run(cr.match_path(paths, tokens, {}, {})) == 'foo'

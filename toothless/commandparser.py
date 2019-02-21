@@ -59,6 +59,9 @@ Parses <:> format pathstr. All extra whitespace is removed.
 :returns: Array of prototokens to match inputs against
 """
 def parse_pathstr(pathstr):
+    # Special case: if pathstr is empty, return empty array.
+    if pathstr == '':
+        return []
     sections = re.split(r'\s+', pathstr)
     prototokens = []
     # Convert args into ProtoTokens
