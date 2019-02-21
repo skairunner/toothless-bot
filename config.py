@@ -17,7 +17,7 @@ logging.basicConfig(level=logging.INFO)
 COMMAND_PREFIX = '?'
 
 # More dangerous, but prevents unexpected downtime
-GRACEFULLY_CATCH_EXCEPTIONS = True
+GRACEFULLY_CATCH_EXCEPTIONS = False
 
 event_handler_modules = [
     'timers.sprint'
@@ -32,4 +32,7 @@ prefix_patterns = [
     path('pong', pong),
     path('sprint', include('timers.sprint')),
     path('s', include('timers.sprint')),
+    path('remind me', include('timers.remind')),
+    path('remindme', include('timers.remind')),
+    path('remind', include('timers.remind'))
 ]
