@@ -1,17 +1,22 @@
 from datetime import datetime, timezone, timedelta
 import asyncio
-from toothless import on_start, path
+from toothless import on_connect, path
 from hierkeyval import get_default
 
 # server: { sprints: {...id : endtime...}, users: {...id: sprint }, count: 0}
 TEMPORARY_STORAGE = get_default('sprints')  # Until a permanent solution found
 
-# Clear all existing sprints on start
-@on_start
+# On (re)connect, re-queue all sprints
+@on_connect
 async def initialize(client):
+    loop = asyncio.get_event_loop()
     for server in client.servers:
-        TEMPORARY_STORAGE.del_val('s', server.id, 'sprints', hasident=True)
-        TEMPORARY_STORAGE.del_val('s', server.id, 'users', hasident=True)
+        try:
+            sprints = TEMPORARY_STORAGE.get_val_ident('s', server.id, 'sprints')
+            for sprintid, sprint in sprints.items():
+                loop.create_task(count_sprint(client, sprint['msg'], sprint, sprintid))
+        except KeyError:
+            continue
 
 def inc_counter(msg):
     counter = TEMPORARY_STORAGE.get_default('s', msg.server.id, 'sprint counter', 0)
@@ -126,7 +131,7 @@ async def start_sprint(client, message, endtime=None):
     if is_already_in_sprint(server, message.author):
         return "You're already in a sprint."
     # Not already in a sprint, can create
-    sprint = {'ends': endtime, 'users': set()}
+    sprint = {'ends': endtime, 'users': set(), 'msg': message}
     _, sprints = get_server_info(server.id)
     sprints[sprintid] = sprint
     add_user(server, sprintid, message.author)
