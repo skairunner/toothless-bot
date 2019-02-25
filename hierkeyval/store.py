@@ -17,7 +17,7 @@ class HierarchicalStore:
     :param filename_or_obj: A filename or a fileobj to persist in
     :param transforms: Any additional transforms for ident parsing
     """
-    def __init__(self, filename_or_obj, transforms={}):
+    def __init__(self, filename_or_obj, transforms={}, is_default=False):
         self.sglobal = {}
         self.sserver = {}
         self.schannel = {}
@@ -53,6 +53,9 @@ class HierarchicalStore:
         else:
             raise ValueError('filename_or_obj should be a filename or fileobj')
         self.dicts = {'g': self.sglobal, 's': self.sserver, 'c': self.schannel}
+
+        if is_default:
+            DEFAULT = self
 
     def flush(self):
         if self.filename is None:
@@ -208,12 +211,16 @@ class NamespacedHStore:
         return self.hsv.flush()
 
 
-DEFAULT = HierarchicalStore(
-    'default.hkv',
-    transforms={'s': lambda x: x.id, 'c': lambda x: x.id}
-)
-
+DEFAULT = None
 def get_default(namespace=None):
+    global DEFAULT
+    if DEFAULT is None:
+        DEFAULT = HierarchicalStore(
+            'default.hkv',
+            transforms={'s': lambda x: x.id, 'c': lambda x: x.id},
+            is_default=True
+        )
+
     if namespace:
-        return NamespacedHStore(DEFAULT, namespace)
+        return DEFAULT.as_namespace(namespace)
     return DEFAULT
