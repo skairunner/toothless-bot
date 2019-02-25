@@ -5,7 +5,7 @@ import traceback
 
 from .commandparser import tokenize
 from .commandrouter import match_path, PathMismatch
-from .eventhandlers import ON_START
+from .eventhandlers import ON_START, ON_RECONNECT
 from . import configwrapper as config
 
 
@@ -21,13 +21,16 @@ class Toothless(discord.Client):
             raise ConfigError(f'Command prefixes can only be 0 or 1 characters. It is currently {len(config.COMMAND_PREFIX)}.')
         self.commandprefix = config.COMMAND_PREFIX
 
+        for handler in ON_START:
+            handler()
+
     async def on_ready(self):
         print(f'Logged in as {self.user.name}')
         loop = asyncio.get_event_loop()
         for name in config.event_handler_modules:
             import_module(name)
 
-        for handler in ON_START:
+        for handler in ON_RECONNECT:
             loop.create_task(handler(self))
 
     async def on_message(self, message):
