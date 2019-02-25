@@ -1,13 +1,17 @@
 import asyncio
 import datetime
-import functools
+import discord
 import heapq
 from hierkeyval import get_default
+import logging
 import pytz
 from toothless import on_start, on_connect, path
 from toothless.tokens import DateProto
+from .reminder_class import Reminder
 
 HKV = get_default('reminders')
+QUEUE_LOOP = None
+
 
 @on_start
 def initialize():
@@ -15,7 +19,23 @@ def initialize():
     HKV.get_default('g', None, 'timezones', {})
     HKV.get_default('g', None, 'reminders', [])
     HKV.get_default('g', None, 'queued', [])  # reminders that will fire soon
-    print('Reminder initialized')
+    HKV.get_default('g', None, 'backedoff', [])  # failed send, must resend
+    logging.info('[timers] Reminders initialized')
+
+@on_connect
+async def connected(client):
+    global QUEUE_LOOP
+    loop = asyncio.get_event_loop()
+    # Periodically check tasks
+    if QUEUE_LOOP is None:
+        QUEUE_LOOP = loop.create_task(queue_reminders(client))
+    reminders = HKV.get_val_ident('g', None, 'backedoff')
+    # Fire all messages that failed to send
+    for reminder in reminders:
+        loop.create_task(send_reminder(client, reminder))
+    logging.info(f'[timers] Reminders - Sent {len(reminders)} backlogged reminders')
+    del reminders[:]
+    HKV.flush()
 
 # Users can specify their timezone for shorthand
 def get_user_tz(user):
@@ -24,28 +44,6 @@ def get_user_tz(user):
         return timezones[user]
     return None
 
-@functools.total_ordering
-class Reminder:
-    """
-    :param user: The reminder user
-    :param time: The time to remind user
-    :param msg: The reminder content to embed
-    :param client: The active client
-    :param dest: Where to remind the user. Is a User or Channel.
-    """
-    def __init__(self, user, time, msg, dest):
-        # The meat of the reminder
-        self.user = user
-        self.time = time
-        self.msg = msg
-        # The metadata in order to send a reply
-        self.dest = dest
-
-    def __lt__(self, other):
-        return self.time < other.time
-
-    def __eq__(self, other):
-        return self.time == other.time
 
 def add_reminder_to_hkv(reminder):
     reminders = HKV.get_val('g', None, 'reminders')
@@ -72,29 +70,49 @@ async def set_tz(client, message, tzname=''):
     HKV.flush()
     return f"Default timezone set to {tzname}!"
 
+# Actually formats the reminder to send
+def send_reminder(client, reminder):
+    return client.send_message(reminder.dest, f"{reminder.user.mention}: Reminder fired! {reminder.msg}")
+
 
 """
 Waits for the reminder time, then fires it and deletes.
 """
 async def fire_reminder(client, reminder):
-    delta = reminder.time - datetime.now(pytz.utc)
+    delta = reminder.time - datetime.datetime.now(pytz.utc)
     asyncio.sleep(delta.seconds)
     # Remove from queued reminders
-    queued = HKV.get_val('g', None, 'reminders')
+    queued = HKV.get_val('g', None, 'queued')
     queued.remove(reminder)
     HKV.flush()
-    client.send_message(reminder.dest, f"{reminder.user.mention}: Reminder fired! {reminder.msg}")
+    try:
+        await send_reminder(client, reminder)
+    except discord.HTTPException as e:
+        logging.warning(f"[timers] Sending reminder raised {e}, trying again in 60s...")
+        asyncio.sleep(60)
+        try:
+            await send_reminder(client, reminder)
+        except discord.HTTPException:
+            logging.warning(f"[timers] Sending reminder raised {e}. Backing off.")
+            backoff = HKV.get_val_ident('g', None, 'backedoff')
+            backoff.append(reminder)
+            HKV.flush()
+
+async def queue_on_loop(client):
+    while True:
+        asyncio.sleep(60 * 60)  # 1 hour
+        await queue_reminders(client)
 
 """
 Iterates list of reminders and queues any that are slated to happen in the next hour.
 """
 async def queue_reminders(client):
     reminders = HKV.get_val('g', None, 'reminders')
-    queued = HKV.get_val('g', None, 'reminders')
-    now = datetime.now(pytz.utc)
+    queued = HKV.get_val('g', None, 'queued')
+    now = datetime.datetime.now(pytz.utc)
     one_hour = datetime.timedelta(hours=1)
     loop = asyncio.get_event_loop()
-    while len(reminders) > 0 and reminders[0] < now + one_hour:
+    while len(reminders) > 0 and reminders[0].time < now + one_hour:
         queued.append(heapq.heappop(reminders))
         loop.create_task(fire_reminder(client, queued[-1]))
     HKV.flush()
@@ -116,6 +134,7 @@ async def add_reminder(client, message, when=None, in_=None, what=''):
         # change it to UTC
         when = when.astimezone(pytz.utc)
     add_reminder_to_hkv(Reminder(message.author, when, what, message.channel))
+    asyncio.get_event_loop().create_task(queue_reminders(client))
     return str(when)
 
 abs_paths = [
