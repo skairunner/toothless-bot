@@ -1,3 +1,10 @@
+'''
+Provided a discord.py user, returns <username>#<discriminator>,
+e.g. Discorder#1029.
+'''
+def get_full_username(user):
+    return f'{user.name}#{user.discriminator:0>4}'
+
 # Splits input into 2000ch or less blocks, attempting to preserve
 # formatting and prefering to split on \n and space over mid-word
 # :returns: array of strings

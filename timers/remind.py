@@ -7,7 +7,10 @@ import logging
 import pytz
 from toothless import on_start, on_connect, path
 from toothless.tokens import DateProto
+from toothless.utils import get_full_username
 from .reminder_class import Reminder
+
+from dateparser import parse
 
 HKV = get_default('reminders')
 QUEUE_LOOP = None
@@ -72,7 +75,16 @@ async def set_tz(client, message, tzname=''):
 
 # Actually formats the reminder to send
 def send_reminder(client, reminder):
-    return client.send_message(reminder.dest, f"{reminder.user.mention}: Reminder fired! {reminder.msg}")
+    embed = discord.Embed(
+        timestamp=reminder.time,
+        type='rich',
+        description=reminder.msg,
+        color=discord.Color(0x6b7072)
+    )
+    avatarurl = reminder.user.avatar_url
+    username = get_full_username(reminder.user)
+    embed.set_footer(text=username, icon_url=avatarurl)
+    return client.send_message(reminder.dest, f"{reminder.user.mention}: Reminder fired!", embed=embed)
 
 
 """
