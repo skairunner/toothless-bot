@@ -31,6 +31,7 @@ prefix_patterns = [
     path('ping', ping),
     path('pong', pong),
     path('nick', include('nick')),
+    path('nickname', include('nick')),
     path('sprint', include('timers.sprint')),
     path('s', include('timers.sprint')),
     path('remind me', include('timers.remind')),
