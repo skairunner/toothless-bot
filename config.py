@@ -5,7 +5,7 @@ from toothless import path, include
 from state import modstate
 from tymora_plugin import do_dice
 from hello import hello
-from timers import ping, pong, sprint
+from timers import ping, pong
 
 
 # By default, discord.py is silent to stdout.
@@ -30,8 +30,10 @@ prefix_patterns = [
     path('hello', hello),
     path('ping', ping),
     path('pong', pong),
-    path('nick', include('utils.prefix_patterns')),
-    path('nickname', include('utils.prefix_patterns')),
+    path('nick', include('utils.nick_patterns')),
+    path('nickname', include('utils.nick_patterns')),
+    path('av', include('utils.avatar_patterns')),
+    path('avatar', include('utils.avatar_patterns')),
     path('sprint', include('timers.sprint.prefix_patterns')),
     path('s', include('timers.sprint.prefix_patterns')),
     path('remind me', include('timers.remind.prefix_patterns')),
