@@ -30,11 +30,11 @@ prefix_patterns = [
     path('hello', hello),
     path('ping', ping),
     path('pong', pong),
-    path('nick', include('nick')),
-    path('nickname', include('nick')),
-    path('sprint', include('timers.sprint')),
-    path('s', include('timers.sprint')),
-    path('remind me', include('timers.remind')),
-    path('remindme', include('timers.remind')),
-    path('remind', include('timers.remind'))
+    path('nick', include('utils.prefix_patterns')),
+    path('nickname', include('utils.prefix_patterns')),
+    path('sprint', include('timers.sprint.prefix_patterns')),
+    path('s', include('timers.sprint.prefix_patterns')),
+    path('remind me', include('timers.remind.prefix_patterns')),
+    path('remindme', include('timers.remind.prefix_patterns')),
+    path('remind', include('timers.remind.prefix_patterns'))
 ]

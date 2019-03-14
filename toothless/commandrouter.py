@@ -104,10 +104,12 @@ includes a prefix_patterns list from the given module
 """
 def include(modulename):
     try:
-        return getattr(import_module(modulename), 'prefix_patterns')
+        attr = modulename.split('.')[-1]
+        module = '.'.join(modulename.split('.')[:-1])
+        return getattr(import_module(module), attr)
     except ImportError:
         raise ImportError(
-            'Could not find prefix_patterns specified by import "{modulename}"'
+            f'Could not find prefix_patterns specified by import "{modulename}"'
         )
 
 """

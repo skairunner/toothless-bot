@@ -6,7 +6,7 @@ from hierkeyval import get_default
 import logging
 import pytz
 from toothless import on_start, on_connect, path
-from toothless.tokens import DateProto
+from toothless.tokens import DateProto, RawDateProto
 from toothless.utils import get_full_username
 from .reminder_class import Reminder
 
@@ -14,7 +14,6 @@ from dateparser import parse
 
 HKV = get_default('reminders')
 QUEUE_LOOP = None
-
 
 @on_start
 def initialize():
@@ -92,7 +91,7 @@ Waits for the reminder time, then fires it and deletes.
 """
 async def fire_reminder(client, reminder):
     delta = reminder.time - datetime.datetime.now(pytz.utc)
-    asyncio.sleep(delta.seconds)
+    await asyncio.sleep(delta.total_seconds())
     # Remove from queued reminders
     queued = HKV.get_val('g', None, 'queued')
     queued.remove(reminder)
