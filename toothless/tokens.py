@@ -36,18 +36,21 @@ class StaticProto(ProtoToken):
 
 # A token that represents a string argument
 class StringProto(ProtoToken):
-    def verify(self, string):
+    @staticmethod
+    def verify(string):
         return string
 
 class IntProto(ProtoToken):
-    def verify(self, string):
+    @staticmethod
+    def verify(string):
         try:
             return int(string)
         except ValueError:
             raise TokenMismatch(f'The string "{string}" is not a valid integer.')
 
 class RealProto(ProtoToken):
-    def verify(self, string):
+    @staticmethod
+    def verify(string):
         try:
             return float(string)
         except ValueError:
@@ -87,7 +90,8 @@ class DateProto(RawDateProto):
 
 # This special token 'slurps' all tokens after it.
 class RemainderProto(ProtoToken):
-    def verify(self, string):
+    @staticmethod
+    def verify(string):
         return string
 
 # Like RawDateProto but slurps
