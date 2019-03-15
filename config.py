@@ -1,3 +1,4 @@
+from hierkeyval import get_default
 import logging
 from toothless import path, include
 
@@ -6,6 +7,7 @@ from tymora_plugin import do_dice
 from hello import hello
 from timers import ping, pong
 
+CONFIG_STORE = get_default('toothless-config')
 
 # By default, discord.py is silent to stdout.
 # Set so all messages are logged
@@ -13,7 +15,7 @@ logging.basicConfig(level=logging.INFO)
 
 # All prefix commands must start with this sigil.
 # It must be 0 or 1 characters
-COMMAND_PREFIX = '?'
+CONFIG_STORE.set_global('COMMAND_PREFIX', '?')
 
 # More dangerous, but prevents unexpected downtime
 GRACEFULLY_CATCH_EXCEPTIONS = False
@@ -23,6 +25,7 @@ event_handler_modules = [
 ]
 
 prefix_patterns = [
+    path('config', include('toothless.configplugin.prefixpatterns')),
     path('state <statecontent:*>', modstate),
     path('r -v <verbose:bool> <roll:*>', do_dice),
     path('r <roll:*>', do_dice),

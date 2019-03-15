@@ -1,5 +1,6 @@
 import asyncio
 import discord
+from hierkeyval import get_default
 from importlib import import_module
 import traceback
 
@@ -13,13 +14,14 @@ class ConfigError(BaseException):
     pass
 
 
+CONFIG_STORE = get_default('toothless-config')
 class Toothless(discord.Client):
     def __init__(self):
         super().__init__()
         self.prefix_patterns = config.prefix_patterns
-        if len(config.COMMAND_PREFIX) > 1:
-            raise ConfigError(f'Command prefixes can only be 0 or 1 characters. It is currently {len(config.COMMAND_PREFIX)}.')
-        self.commandprefix = config.COMMAND_PREFIX
+        COMMAND_PREFIX = CONFIG_STORE.get_global('COMMAND_PREFIX')
+        if len(COMMAND_PREFIX) > 1:
+            raise ConfigError(f'Command prefixes can only be 0 or 1 characters. It is currently {len(COMMAND_PREFIX)}.')
 
         for handler in ON_START:
             handler()
@@ -34,15 +36,19 @@ class Toothless(discord.Client):
             loop.create_task(handler(self))
 
     async def on_message(self, message):
-        if message.content.startswith(self.commandprefix):
-            prefixlen = len(self.commandprefix)
+        # respect per-server settings
+        COMMAND_PREFIX = CONFIG_STORE.get_val('sg', message, 'COMMAND_PREFIX')
+        COMPLAIN = CONFIG_STORE.get_val('sg', message, 'COMPLAIN_IF_COMMAND_NOT_RECOGNIZED')
+        if message.content.startswith(COMMAND_PREFIX):
+            prefixlen = len(COMMAND_PREFIX)
             tokens = tokenize(message.content[prefixlen:])
             loop = asyncio.get_event_loop()
             try:
                 coro = match_path(self.prefix_patterns, tokens, self, message)
                 loop.create_task(coro)
             except PathMismatch:
-                await self.send_message(message.channel, 'Command not recognized.')
+                if COMPLAIN:
+                    await self.send_message(message.channel, 'Command not recognized.')
             except BaseException as e:
                 if config.GRACEFULLY_CATCH_EXCEPTIONS:
                     traceback.print_exc()

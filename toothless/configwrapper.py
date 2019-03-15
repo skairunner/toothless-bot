@@ -2,13 +2,20 @@
 Set defaults for config options
 """
 import os
+from hierkeyval import get_default
+
+
+CONFIG_STORE = get_default('toothless-config')
 
 # The token to authenticate to Discord with
 TOKEN = os.environ['BOTTOKEN']
 
 # All prefix commands must start with this sigil
 # It must be 0 or 1 characters
-COMMAND_PREFIX = '/'
+CONFIG_STORE.set_global('COMMAND_PREFIX', '/')
+
+# Whether to complain if an incorrect command is used
+CONFIG_STORE.set_global('COMPLAIN_IF_COMMAND_NOT_RECOGNIZED', True)
 
 # Must specify routes in config
 prefix_patterns = []
