@@ -2,6 +2,7 @@ from toothless import path
 import re
 import discord
 
+from .state import modstate
 
 async def changenick(client, message, newnick=None):
     try:

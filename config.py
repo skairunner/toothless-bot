@@ -1,8 +1,7 @@
 import logging
-import os
 from toothless import path, include
 
-from state import modstate
+from utils import modstate
 from tymora_plugin import do_dice
 from hello import hello
 from timers import ping, pong

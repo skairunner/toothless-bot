@@ -1,5 +1,5 @@
-import re
 import discord
+import re
 
 
 MODSTATE_STRING = "Please acknowledge (if appropriate to do so)."
