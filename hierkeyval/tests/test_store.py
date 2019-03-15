@@ -61,3 +61,18 @@ def test_get_default():
     NHKV = HKV.as_namespace('test')
     assert NHKV.get_default('c', 'myident', 'key', 123) == 123
     assert NHKV.get_val_ident('c', 'myident', 'key') == 123
+
+def test_set_and_get_global():
+    HKV = HierarchicalStore(io.BytesIO())
+    NHKV = HKV.as_namespace('test')
+    NHKV.set_global('bla', 123)
+    assert NHKV.get_val_ident('g', None, 'bla') == 123
+    assert NHKV.get_global('bla') == 123
+
+# Check that transform lambdas are called even on ident functions
+def test_ident_functions_store_correctly():
+    HKV = HierarchicalStore(io.BytesIO(), {'s': lambda x: x[:2]})
+    NHKV = HKV.as_namespace('test')
+    NHKV.set_val('s', 'identifier', 'key', 'val', hasident=True)
+    # Ensure that the internal identifier is transformed
+    assert 'id' in HKV.sserver['test']

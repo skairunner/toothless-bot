@@ -55,6 +55,7 @@ class HierarchicalStore:
         self.dicts = {'g': self.sglobal, 's': self.sserver, 'c': self.schannel}
 
         if is_default:
+            global DEFAULT
             DEFAULT = self
 
     def flush(self):
@@ -92,6 +93,19 @@ class HierarchicalStore:
         else:
             raise ValueError(f'Param level must be one of g, s, c, but is "{level}".')
 
+        return d, ident
+
+    # Does not attempt to extract identifier from a msg.
+    def get_dict_and_ident_direct(self, level, identifier=None):
+        if level == 'g':
+            d = self.sglobal
+            ident = None
+        elif level == 's':
+            d = self.sserver
+            ident = self.ident_transforms['s'](identifier)
+        elif level == 'c':
+            d = self.schannel
+            ident = self.ident_transforms['c'](identifier)
         return d, ident
 
     """
@@ -152,8 +166,7 @@ class HierarchicalStore:
     """
     def set_val(self, level, namespace, identifier, key, val, hasident=False):
         if hasident:
-            d, _ = self.get_dict_and_ident(level)
-            ident = identifier
+            d, ident = self.get_dict_and_ident_direct(level, identifier)
         else:
             d, ident = self.get_dict_and_ident(level, identifier)
 
@@ -166,8 +179,7 @@ class HierarchicalStore:
 
     def del_val(self, level, namespace, identifier, key, hasident=False):
         if hasident:
-            d, _ = self.get_dict_and_ident(level)
-            ident = identifier
+            d, ident = self.get_dict_and_ident(level, identifier)
         else:
             d, ident = self.get_dict_and_ident(level, identifier)
 
@@ -195,11 +207,18 @@ class NamespacedHStore:
     def get_val(self, levels, identifier, key):
         return self.hsv.get_val(levels, self.namespace, identifier, key)
 
+    def get_global(self, key):
+        return self.hsv.get_val_ident('g', self.namespace, None, key)
+
     def get_val_ident(self, level, ident, key):
         return self.hsv.get_val_ident(level, self.namespace, ident, key)
 
     def set_val(self, level, identifier, key, val, hasident=False):
         return self.hsv.set_val(level, self.namespace, identifier, key, val, hasident)
+
+    # Removes the need for an identifier because global does not have one
+    def set_global(self, key, val):
+        return self.hsv.set_val('g', self.namespace, None, key, val, True)
 
     def del_val(self, level, identifier, key, hasident=False):
         return self.hsv.del_val(level, self.namespace, identifier, key, hasident)
