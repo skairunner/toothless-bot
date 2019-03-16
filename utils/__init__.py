@@ -35,6 +35,7 @@ async def get_avatar(client, message, search=None):
                           url=user.avatar_url,
                           description=f"")
     embed.set_image(url=user.avatar_url)
+    embed.color = user.color
     await client.send_message(message.channel, embed=embed)
 
 avatar_patterns = [
