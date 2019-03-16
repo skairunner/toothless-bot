@@ -1,6 +1,7 @@
 from hierkeyval import get_default
 from .commandrouter import path
 from .tokens import TokenMismatch, BoolProto
+from toothless import utils
 from toothless.utils import is_admin, has_perm, get_or_extract_id, check_admin_or_mod
 
 CONFIG_STORE = get_default('toothless-config')
@@ -106,7 +107,7 @@ async def add_perm_role(client, message, permname=None, role=None):
 
 async def list_perm_roles(client, message, permname):
     roles = PERM_STORE.get_default('s', message.server, permname, [])
-    rolestring = '\n'.join(roles)
+    rolestring = '\n'.join(['@' + utils.get_role_by_id(message.server, x).name for x in roles])
     return f"Roles for perm '{permname}' ```\n{rolestring}```"
 
 
