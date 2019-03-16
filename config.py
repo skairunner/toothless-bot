@@ -2,7 +2,7 @@ from hierkeyval import get_default
 import logging
 from toothless import path, include
 
-from utils import modstate
+from utils import modstate, roles
 from tymora_plugin import do_dice
 from hello import hello
 from timers import ping, pong
@@ -27,6 +27,8 @@ event_handler_modules = [
 prefix_patterns = [
     path('config', include('toothless.configplugin.config_prefixpatterns')),
     path('perms', include('toothless.configplugin.perm_prefixpatterns')),
+    path('role', include('utils.roles.prefix_patterns')),
+    path('roles', roles.list_roles),
     path('state <statecontent:*>', modstate),
     path('r -v <verbose:bool> <roll:*>', do_dice),
     path('r <roll:*>', do_dice),

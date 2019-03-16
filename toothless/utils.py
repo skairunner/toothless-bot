@@ -90,4 +90,4 @@ def get_role_by_id(server, roleid):
     for role in server.roles:
         if role.id == roleid:
             return role
-    raise KeyError(f"Could not find role with roleid {roleid}.")
+    raise KeyError(f"Could not find role with roleid '{roleid}'.")
