@@ -85,3 +85,9 @@ def get_or_extract_id(string):
 
 def check_admin_or_mod(message):
     return is_admin(message) or has_perm('mod', message)
+
+def get_role_by_id(server, roleid):
+    for role in server.roles:
+        if role.id == roleid:
+            return role
+    raise KeyError(f"Could not find role with roleid {roleid}.")
