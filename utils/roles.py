@@ -98,6 +98,7 @@ Type `/role <keywords>` to toggle a role on yourself. You can separate keywords 
         return "No roles have been bound yet."
     embed.add_field(name='KEYWORDS', value=keyworddesc)
     embed.add_field(name='ROLES', value=roledesc)
+    embed.color = message.author.color
     await client.send_message(message.channel, embed=embed)
 
 
