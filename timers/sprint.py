@@ -12,14 +12,14 @@ async def initialize(client):
     loop = asyncio.get_event_loop()
     for server in client.servers:
         try:
-            sprints = TEMPORARY_STORAGE.get_val_ident('s', server.id, 'sprints')
+            sprints = TEMPORARY_STORAGE.get_val_ident('s', server, 'sprints')
             for sprintid, sprint in sprints.items():
                 loop.create_task(count_sprint(client, sprint['msg'], sprint, sprintid))
         except KeyError:
             continue
 
 def inc_counter(msg):
-    counter = TEMPORARY_STORAGE.get_default('s', msg.server.id, 'sprint counter', 0)
+    counter = TEMPORARY_STORAGE.get_default('s', msg.server, 'sprint counter', 0)
     TEMPORARY_STORAGE.set_val('s', msg, 'sprint counter', counter + 1)
     return counter
 
@@ -28,7 +28,7 @@ def get_utcnow():
     return datetime.now(timezone.utc)
 
 def is_already_in_sprint(server, user):
-    users, _ = get_server_info(server.id)
+    users, _ = get_server_info(server)
     if user not in users:
         return False
     return users[user] is not None
@@ -51,7 +51,7 @@ def get_server_info(serverid):
     return users, sprints
 
 def add_user(server, sprintid, user):
-    users, sprints = get_server_info(server.id)
+    users, sprints = get_server_info(server)
     if is_already_in_sprint(server, user):
         sprintid = users[user]
         timestr = get_sprint_timeleft(sprints[sprintid])
@@ -67,7 +67,7 @@ def add_user(server, sprintid, user):
     return f'Joined sprint {sprintid} ending in {timestr}.'
 
 def remove_user(server, user):
-    users, sprints = get_server_info(server.id)
+    users, sprints = get_server_info(server)
     if user in users:
         if users[user] is not None:
             sprintid = users[user]
@@ -98,7 +98,7 @@ Does the counting-down and finishing of the sprint.
 :param sprint: the sprint object
 """
 async def count_sprint(client, msg, sprint, sprintid):
-    users, sprints = get_server_info(msg.server.id)
+    users, sprints = get_server_info(msg.server)
     endtime = sprint['ends']
     loop = asyncio.get_event_loop()
     while get_utcnow() < endtime:
@@ -132,7 +132,7 @@ async def start_sprint(client, message, endtime=None):
         return "You're already in a sprint."
     # Not already in a sprint, can create
     sprint = {'ends': endtime, 'users': set(), 'msg': message}
-    _, sprints = get_server_info(server.id)
+    _, sprints = get_server_info(server)
     sprints[sprintid] = sprint
     add_user(server, sprintid, message.author)
 
@@ -143,7 +143,7 @@ async def start_sprint(client, message, endtime=None):
     loop.create_task(count_sprint(client, msg, sprint, sprintid))
 
 async def stop_sprint(client, message, sprintid=-1):
-    users, sprints = get_server_info(message.server.id)
+    users, sprints = get_server_info(message.server)
     if sprintid not in sprints:
         return f'Sprint {sprintid} is not running.'
     # Stop the sprint and report time left

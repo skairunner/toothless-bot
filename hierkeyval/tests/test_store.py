@@ -69,6 +69,12 @@ def test_set_and_get_global():
     assert NHKV.get_val_ident('g', None, 'bla') == 123
     assert NHKV.get_global('bla') == 123
 
+def test_default_doesnt_overwrite():
+    HKV = HierarchicalStore(io.BytesIO())
+    NHKV = HKV.as_namespace('test')
+    NHKV.set_global('bla', 123)
+    assert NHKV.get_default('g', None, 'bla', 321) == 123
+
 # Check that transform lambdas are called even on ident functions
 def test_ident_functions_store_correctly():
     HKV = HierarchicalStore(io.BytesIO(), {'s': lambda x: x[:2]})
