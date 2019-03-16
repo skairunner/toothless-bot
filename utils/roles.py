@@ -92,7 +92,7 @@ Type `/role <keywords>` to toggle a role on yourself. You can separate keywords 
 """
     embed = discord.Embed(title='ROLE LIST', description=desc)
     bindings = STORE.get_default('s', message.server, 'bindings', {})
-    keyworddesc = '\n'.join([f'`{i}.` {x}' for i, x in enumerate(bindings.keys())])
+    keyworddesc = '\n'.join([f'`{i+1}.` {x}' for i, x in enumerate(bindings.keys())])
     roledesc = '\n'.join([f'`for` <@&{x}>' for x in bindings.values()])
     if keyworddesc == '':
         return "No roles have been bound yet."
