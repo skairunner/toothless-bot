@@ -149,6 +149,7 @@ class HierarchicalStore:
     Like get_val_ident but provides a default.
     """
     def get_default(self, level, namespace, ident, key, default):
+        ident = self.ident_transforms[level](ident)
         try:
             return self.get_val_ident(level, namespace, ident, key)
         except KeyError:
