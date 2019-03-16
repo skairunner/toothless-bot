@@ -46,7 +46,6 @@ async def unbind_role(client, message, keyword=None):
 
 async def toggle_roles(client, message, keywords=None):
     keywords = [x.strip() for x in keywords.split(',')]
-    print(keywords)
     bindings = STORE.get_default('s', message.server, 'bindings', {})
     roles_added = []
     roles_removed = []
@@ -67,8 +66,10 @@ async def toggle_roles(client, message, keywords=None):
     try:
         for role in roles_added:
             await client.add_roles(message.author, role)
+            await asyncio.sleep(0.1)
         for role in roles_removed:
             await client.remove_roles(message.author, role)
+            await asyncio.sleep(0.1)
     except discord.Forbidden:
         return "It seems I don't have the permission to manage roles."
 
@@ -92,7 +93,7 @@ Type `/role <keywords>` to toggle a role on yourself. You can separate keywords 
 """
     embed = discord.Embed(title='ROLE LIST', description=desc)
     bindings = STORE.get_default('s', message.server, 'bindings', {})
-    keyworddesc = '\n'.join([f'`{i+1}.` {x}' for i, x in enumerate(bindings.keys())])
+    keyworddesc = '\n'.join([f'`{i+2}.` {x}' for i, x in enumerate(bindings.keys())])
     roledesc = '\n'.join([f'`for` <@&{x}>' for x in bindings.values()])
     if keyworddesc == '':
         return "No roles have been bound yet."
