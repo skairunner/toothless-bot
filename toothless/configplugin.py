@@ -26,6 +26,9 @@ class ConfigOptions:
         CONFIG_STORE.set_val('s', server, self.name, newconfig, hasident=True)
 
 async def set_config(client, message, config=None, input=None):
+    if not check_admin_or_mod(message):
+        return "You don't have permission to do that."
+
     if config not in CONFIG_OPTIONS:
         options = '\n'.join(CONFIG_OPTIONS.keys())
         return f"'{config}' isn't a valid configuration option. Valid options are: ```{options}```"
@@ -41,6 +44,9 @@ async def set_config(client, message, config=None, input=None):
         return f"The provided value '{input}' isn't valid for {config} because: {str(e)}"
 
 async def unset_config(client, message, config=None):
+    if check_admin_or_mod(message):
+        return "You don't have permission to do that."
+
     if config not in CONFIG_OPTIONS:
         options = '\n'.join(CONFIG_OPTIONS.keys())
         return f"'{config}' isn't a valid configuration option. Valid options are: ```{options}```"
@@ -92,6 +98,8 @@ async def add_perm_role(client, message, permname=None, role=None):
     roles = PERM_STORE.get_default('s', message.server, permname, [])
     roleid = get_or_extract_id(role)
     roles.append(roleid)
+    # remove duplicates
+    roles = list(set(roles))
     PERM_STORE.set_val('s', message, permname, roles)
     return f"Added <@&{roleid}> to perm '{permname}'."
 
