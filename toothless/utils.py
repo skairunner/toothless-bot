@@ -82,3 +82,6 @@ or extracts an id from a mention (eg. <#21309123902>)
 """
 def get_or_extract_id(string):
     return re.search(r'\d+', string).group(0)
+
+def check_admin_or_mod(message):
+    return is_admin(message) or has_perm('mod', message)

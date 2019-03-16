@@ -1,7 +1,7 @@
 from hierkeyval import get_default
 from .commandrouter import path
 from .tokens import TokenMismatch, BoolProto
-from toothless.utils import is_admin, has_perm, get_or_extract_id
+from toothless.utils import is_admin, has_perm, get_or_extract_id, check_admin_or_mod
 
 CONFIG_STORE = get_default('toothless-config')
 PERM_STORE = get_default('toothless-perms')
@@ -87,7 +87,7 @@ Admins or mods can add a roleid for a permission on a server.
 """
 async def add_perm_role(client, message, permname=None, role=None):
     # Check that user has permissions to use this cmd
-    if not (is_admin(message) or has_perm('mod', message)):
+    if not check_admin_or_mod(message):
         return "You don't have permission to do that."
     roles = PERM_STORE.get_default('s', message.server, permname, [])
     roleid = get_or_extract_id(role)
@@ -104,7 +104,7 @@ async def list_perm_roles(client, message, permname):
 
 async def remove_perm_role(client, message, permname=None, role=None):
     # Check that user has permissions to use this cmd
-    if not (is_admin(message) or has_perm('mod', message)):
+    if not check_admin_or_mod(message):
         return "You don't have permission to do that."
     roles = PERM_STORE.get_default('s', message.server, permname, [])
     roleid = get_or_extract_id(role)
