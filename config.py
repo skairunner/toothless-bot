@@ -25,7 +25,8 @@ event_handler_modules = [
 ]
 
 prefix_patterns = [
-    path('config', include('toothless.configplugin.prefixpatterns')),
+    path('config', include('toothless.configplugin.config_prefixpatterns')),
+    path('perms', include('toothless.configplugin.perm_prefixpatterns')),
     path('state <statecontent:*>', modstate),
     path('r -v <verbose:bool> <roll:*>', do_dice),
     path('r <roll:*>', do_dice),

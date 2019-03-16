@@ -1,3 +1,7 @@
+from hierkeyval import get_default
+import re
+
+
 '''
 Provided a discord.py user, returns <username>#<discriminator>,
 e.g. Discorder#1029.
@@ -33,3 +37,48 @@ def smart_split(string, maxlen=2000, searchcount=50):
             string = string[maxlen:]
     out.append(string)
     return out
+
+# Checks if user has a given role by comparing role ids
+def user_has_role(user, roleid):
+    for r in user.roles:
+        if r.id == roleid:
+            return True
+    return False
+
+
+PERM_STORE = get_default('toothless-perms')
+"""
+Checks that a user has at least one of the perms
+
+:param permnames: A permission name, or a list of permission names. If it's a list, it will be OR'd.
+:param msg: The Discord.py message
+:returns: True if the user has at least one of the permissions provided
+"""
+def has_perm(permnames, msg):
+    if isinstance(permnames, str):
+        permnames = [permnames]
+
+    try:
+        for permname in permnames:
+            roles = PERM_STORE.get_val('csg', msg, permname)
+            if isinstance(roles, list):
+                for roleid in roles:
+                    if user_has_role(msg.author, roleid):
+                        return True
+            elif user_has_role(msg.author, roles):
+                return True
+        return False
+    except KeyError:
+        return False
+
+
+def is_admin(msg):
+    return msg.author.server_permissions.administrator
+
+
+"""
+Given a string, it either finds a series of numbers that could be an id,
+or extracts an id from a mention (eg. <#21309123902>)
+"""
+def get_or_extract_id(string):
+    return re.search(r'\d+', string).group(0)

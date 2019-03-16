@@ -1,8 +1,10 @@
 from hierkeyval import get_default
 from .commandrouter import path
 from .tokens import TokenMismatch, BoolProto
+from toothless.utils import is_admin, has_perm, get_or_extract_id
 
 CONFIG_STORE = get_default('toothless-config')
+PERM_STORE = get_default('toothless-perms')
 
 """
 Some utilities for configuring Toothless per-server.
@@ -70,12 +72,49 @@ CONFIG_OPTIONS = {
     'COMPLAIN_IF_COMMAND_NOT_RECOGNIZED': ConfigOptions('COMPLAIN_IF_COMMAND_NOT_RECOGNIZED', 'If true, Toothless will say "Command not recognized" if an invalid command is sent. Defaults to "{}"', parse_bool),
 }
 
-# async def set_config(
 
-prefixpatterns = [
+config_prefixpatterns = [
     path('', help),
     path('help', help),
     path('unset <config:str>', unset_config),
     path('<config:str>', set_config),
     path('<config:str> <input:*>', set_config),
+]
+
+
+"""
+Admins or mods can add a roleid for a permission on a server.
+"""
+async def add_perm_role(client, message, permname=None, role=None):
+    # Check that user has permissions to use this cmd
+    if not (is_admin(message) or has_perm('mod', message)):
+        return "You don't have permission to do that."
+    roles = PERM_STORE.get_default('s', message.server, permname, [])
+    roleid = get_or_extract_id(role)
+    roles.append(roleid)
+    PERM_STORE.set_val('s', message, permname, roles)
+    return f"Added <@&{roleid}> to perm '{permname}'."
+
+
+async def list_perm_roles(client, message, permname):
+    roles = PERM_STORE.get_default('s', message.server, permname, [])
+    rolestring = '\n'.join(roles)
+    return f"Roles for perm '{permname}' ```\n{rolestring}```"
+
+
+async def remove_perm_role(client, message, permname=None, role=None):
+    # Check that user has permissions to use this cmd
+    if not (is_admin(message) or has_perm('mod', message)):
+        return "You don't have permission to do that."
+    roles = PERM_STORE.get_default('s', message.server, permname, [])
+    roleid = get_or_extract_id(role)
+    if roleid in roles:
+        roles.remove(roleid)
+    PERM_STORE.set_val('s', message, permname, roles)
+    return f"Removed <@&{roleid}> from perm '{permname}.'"
+
+perm_prefixpatterns = [
+    path('add <permname:str> <role:str>', add_perm_role),
+    path('list <permname:str>', list_perm_roles),
+    path('remove <permname:str> <role:str>', remove_perm_role),
 ]
