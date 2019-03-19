@@ -1,15 +1,15 @@
 import discord
 import re
+from toothless import utils
 
 
 MODSTATE_STRING = "Please acknowledge (if appropriate to do so)."
 
 
 async def modstate(client, message, statecontent):
-    for role in message.author.roles:
-        if role.name == 'Protectorate':
-            await do_the_state(client, message, statecontent)
-            return
+    if utils.check_admin_or_mod(message):
+        await do_the_state(client, message, statecontent)
+        return
     # if not right role
     author = message.author.name
     discrim = message.author.discriminator
