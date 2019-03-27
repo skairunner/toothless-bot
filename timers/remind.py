@@ -22,7 +22,7 @@ def initialize():
     HKV.get_default('g', None, 'reminders', [])
     HKV.get_default('g', None, 'queued', [])  # reminders that will fire soon
     HKV.get_default('g', None, 'backedoff', [])  # failed send, must resend
-    logging.info('[timers] Reminders initialized')
+    logging.info('timers:reminders - initialized')
 
 @on_connect
 async def connected(client):
@@ -35,7 +35,7 @@ async def connected(client):
     # Fire all messages that failed to send
     for reminder in reminders:
         loop.create_task(send_reminder(client, reminder))
-    logging.info(f'[timers] Reminders - Sent {len(reminders)} backlogged reminders')
+    logging.info(f'timers:reminders - Sent {len(reminders)} backlogged reminders')
     del reminders[:]
     HKV.flush()
 
