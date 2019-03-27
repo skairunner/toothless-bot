@@ -21,7 +21,7 @@ CONFIG_STORE.set_global('COMMAND_PREFIX', '?')
 GRACEFULLY_CATCH_EXCEPTIONS = False
 
 event_handler_modules = [
-    'timers.sprint'
+    'fakenitro'
 ]
 
 prefix_patterns = [

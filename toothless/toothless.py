@@ -6,7 +6,7 @@ import traceback
 
 from .commandparser import tokenize
 from .commandrouter import match_path, PathMismatch
-from .eventhandlers import ON_START, ON_RECONNECT
+from .eventhandlers import ON_START, ON_RECONNECT, ON_MATCH
 from . import configwrapper as config
 
 
@@ -36,12 +36,12 @@ class Toothless(discord.Client):
             loop.create_task(handler(self))
 
     async def on_message(self, message):
+        loop = asyncio.get_event_loop()
         # respect per-server settings
         COMMAND_PREFIX = CONFIG_STORE.get_val('sg', message, 'COMMAND_PREFIX')
         COMPLAIN = CONFIG_STORE.get_val('sg', message, 'COMPLAIN_IF_COMMAND_NOT_RECOGNIZED')
         if message.content.startswith(COMMAND_PREFIX):
             prefixlen = len(COMMAND_PREFIX)
-            loop = asyncio.get_event_loop()
             try:
                 tokens = tokenize(message.content[prefixlen:])
             except BaseException as e:
@@ -60,3 +60,8 @@ class Toothless(discord.Client):
                     traceback.print_exc()
                 else:
                     raise e
+        # Also attempt to match against each registered regex handler
+        for regex, f in ON_MATCH:
+            match = regex.search(message.content)
+            if match is not None:
+                loop.create_task(f(self, message, match, **match.groupdict()))
