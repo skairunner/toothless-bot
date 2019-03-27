@@ -12,7 +12,7 @@ class ArgumentNameDuplicateError(IndexError):
     pass
 
 
-class ParserError(BaseException):
+class ParserError(Exception):
     pass
 
 
@@ -93,7 +93,7 @@ def tokenize(string):
     out = []
     state = tok.TokenizerState.NORMAL
     accum = []
-    for ch in string:
+    for i, ch in enumerate(string):
         if state == tok.TokenizerState.NORMAL:
             if ch in QUOTES:
                 state = tok.STATE_FROM_QUOTE[ch]
@@ -104,7 +104,15 @@ def tokenize(string):
                 accum.append(ch)
         elif state == tok.TokenizerState.MUST_SPACE:
             if ch != ' ':
-                raise ParserError('Expected a space after a quote, found {ch} instead.')
+                # Put the caret in the right place
+                caret = ' ' * i + '^'
+                raise ParserError(
+                    f'Parsing error:\n```'
+                    f'/{string}\n'
+                    f' {caret}```'
+                    f'Expected a space after a quote, found {ch} instead.'
+                    f"""If you're trying to input an argument with a ", ' or \` in it, try wrapping the entire argument in a quote you aren't using.\n"""
+                    f"""For example, instead of `/a bc"d`, try `/a 'bc"d'`.""")
             else:
                 state = tok.TokenizerState.NORMAL
         else:

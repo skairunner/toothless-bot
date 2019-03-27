@@ -41,8 +41,14 @@ class Toothless(discord.Client):
         COMPLAIN = CONFIG_STORE.get_val('sg', message, 'COMPLAIN_IF_COMMAND_NOT_RECOGNIZED')
         if message.content.startswith(COMMAND_PREFIX):
             prefixlen = len(COMMAND_PREFIX)
-            tokens = tokenize(message.content[prefixlen:])
             loop = asyncio.get_event_loop()
+            try:
+                tokens = tokenize(message.content[prefixlen:])
+            except BaseException as e:
+                # For any errors, simply log an error message and ignore.
+                loop.create_task(self.send_message(message.channel, str(e)))
+                return
+
             try:
                 coro = match_path(self.prefix_patterns, tokens, self, message)
                 loop.create_task(coro)
