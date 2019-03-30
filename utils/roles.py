@@ -109,12 +109,12 @@ async def help(client, message):
 <keywords> :: Toggle roles on yourself. You can toggle multiple at once, just separate the keywords with commas.
 bind <roleid> <keyword> :: (Mod only) Add a keyword-role binding.
 unbind <keyword> :: (Mod only) Removes a keyword-role binding.
-"""
+```"""
 
 
 prefix_patterns = [
     path('help', help),
     path('bind <role:str> <keyword:*>', bind_role),
-    path('unbind <keyword:*>', bind_role),
+    path('unbind <keyword:*>', unbind_role),
     path('<keywords:*>', toggle_roles),
 ]
