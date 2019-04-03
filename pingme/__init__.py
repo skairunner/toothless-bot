@@ -90,17 +90,23 @@ async def do_ping(client, msg, match):
 
 async def subscribe(client, message, channel=None):
     if channel:
-        id = utils.get_or_extract_id(channel)
-        add_to_channel(message, id)
-        return f'Subscribed to pings from <#{id}>!'
+        channels = channel.split(' ')
+        ids = [utils.get_or_extract_id(x) for x in channels]
+        for id in ids:
+            add_to_channel(message, id)
+        submsg = ', '.join([f'<#{x}>' for x in ids])
+        return f'Subscribed to pings from {submsg}!'
     add_to_server(message)
     return f'Subscribed to pings from all channels.'
 
 async def unsubscribe(client, message, channel=None):
     if channel:
-        id = utils.get_or_extract_id(channel)
-        remove_from_channel(message, id)
-        return f'Unsubscribed from <#{id}> pings.'
+        channels = channel.split(' ')
+        ids = [utils.get_or_extract_id(x) for x in channels]
+        for id in ids:
+            remove_from_channel(message, id)
+        unsubmsg = ', '.join([f'<#{x}>' for x in ids])
+        return f'Unsubscribed from {unsubmsg}.'
     remove_from_server(message)
     return f'Unsubscribed from server pings. Any channel pings may still be active.'
 
@@ -137,8 +143,11 @@ Ping you when new messages have been posted!
 
 (blank) :: List if you are subscribed to the server or any channels.
 help :: Show this message.
-sub [channel] :: Without argument, subscribe to entire server. With argument, subscribe to a channel.
-unsub [channel] :: Like the above, but to stop. Note that even if you turn off channel subs, you can still be pinged by the server sub, and vice versa.
+sub :: Subscribe to entire server.
+sub channel1[ channel2...] :: Subscribe to a channel or channels. Separate multiple channels with a space.
+unsub :: Unsubscribe from the entire server.
+unsub channel1[ channel2...] :: Unsubscribe from a channel or channels.
+    NOTE: Even if you turn off channel subs, you can still be pinged by the server sub, and vice versa.
 designate :: (mod only) Designate a channel to put message pings.
 undesignate :: (mod only) Unset a channel for message pings.
 ```"""
