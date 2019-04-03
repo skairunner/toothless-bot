@@ -135,6 +135,7 @@ async def help(client, message):
 = Pingme
 Ping you when new messages have been posted!
 
+(blank) :: List if you are subscribed to the server or any channels.
 help :: Show this message.
 sub [channel] :: Without argument, subscribe to entire server. With argument, subscribe to a channel.
 unsub [channel] :: Like the above, but to stop. Note that even if you turn off channel subs, you can still be pinged by the server sub, and vice versa.
