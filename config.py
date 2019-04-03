@@ -21,7 +21,8 @@ CONFIG_STORE.set_global('COMMAND_PREFIX', '?')
 GRACEFULLY_CATCH_EXCEPTIONS = False
 
 event_handler_modules = [
-    'fakenitro'
+    'fakenitro',
+    'pingme'
 ]
 
 prefix_patterns = [
@@ -43,5 +44,6 @@ prefix_patterns = [
     path('s', include('timers.sprint.prefix_patterns')),
     path('remind me', include('timers.remind.prefix_patterns')),
     path('remindme', include('timers.remind.prefix_patterns')),
-    path('remind', include('timers.remind.prefix_patterns'))
+    path('remind', include('timers.remind.prefix_patterns')),
+    path('pingme', include('pingme.prefix_patterns')),
 ]
