@@ -131,7 +131,7 @@ async def undesignate_pingchannel(client, message):
     return 'Only a mod or admin can do that.'
 
 async def help(client, message):
-    return """```
+    return """```asciidoc
 = Pingme:
 Ping you when new messages have been posted!
 
