@@ -84,7 +84,7 @@ async def do_ping(client, msg, match):
     pingees = get_pingees(msg)
     pingees = [msg.server.get_member(x) for x in pingees]
     if len(pingees) != 0:
-        content = f'Message in {msg.channel.mention}: ' + ''.join([x.mention for x in pingees])
+        content = f'New message in {msg.channel.mention}: ' + ''.join([x.mention for x in pingees])
         # Send the message to the designated ping channel
         await client.send_message(channel, content)
 
@@ -132,7 +132,7 @@ async def undesignate_pingchannel(client, message):
 
 async def help(client, message):
     return """```asciidoc
-= Pingme:
+= Pingme
 Ping you when new messages have been posted!
 
 help :: Show this message.
