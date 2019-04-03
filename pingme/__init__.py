@@ -130,12 +130,26 @@ async def undesignate_pingchannel(client, message):
         return 'Unset ping channel.'
     return 'Only a mod or admin can do that.'
 
+async def help(client, message):
+    return """```
+= Pingme:
+Ping you when new messages have been posted!
+
+help :: Show this message.
+sub [channel] :: Without argument, subscribe to entire server. With argument, subscribe to a channel.
+unsub [channel] :: Like the above, but to stop. Note that even if you turn off channel subs, you can still be pinged by the server sub, and vice versa.
+designate :: (mod only) Designate a channel to put message pings.
+undesignate :: (mod only) Unset a channel for message pings.
+```"""
+
+
 prefix_patterns = [
     path('', subscription_list),
     path('sub', subscribe),
     path('sub <channel:*>', subscribe),
     path('unsub', unsubscribe),
     path('unsub <channel:*>', unsubscribe),
+    path('help', help),
     path('designate', designate_pingchannel),
     path('undesignate', undesignate_pingchannel),
 ]
