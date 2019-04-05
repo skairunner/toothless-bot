@@ -24,13 +24,13 @@ class ProtoToken:
 class StaticProto(ProtoToken):
     def __init__(self, staticstr):
         self.name = 'STATIC'
-        self.staticstr = staticstr
+        self.staticstr = staticstr.lower()
 
     def __repr__(self):
         return f'<{self.__class__.__name__}:{self.staticstr}>'
 
     def verify(self, string):
-        if self.staticstr != string:
+        if self.staticstr != string.lower():
             raise TokenMismatch()
         return string
 
