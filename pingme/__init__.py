@@ -64,24 +64,53 @@ def remove_from_channel(msg, channelid):
         except KeyError:
             return
 
+# Returns the elapsed # of seconds since user's last post
+def get_last_post_time(userid, server):
+    times = STORE.get_default('s', server, 'lastposted', {})
+    if userid in times:
+        return (datetime.now() - times[userid]).total_seconds()
+    return float('Inf')
+
+# Update the time of user's last post
+def set_last_post_time(user, server):
+    times = STORE.get_default('s', server, 'lastposted', {})
+    times[user.id] = datetime.now()
+    STORE.flush()
+
+
+"""
+For every message, ping everyone who has signed up for that ping channel.
+- Only ping for a channel every X seconds (default to 20s)
+- Only ping a user if they haven't posted in that server for the last Y seconds (default 90s)
+"""
 @on_match(r'')
 async def do_ping(client, msg, match):
     channel = get_pingchannel(client, msg.server)
     if channel is None:
         return
+    # Update last posted timer regardless of whether a ping will be sent
+    set_last_post_time(msg.author, msg.server)
     # Also don't ping if the msg is in the pingchannel
     if msg.channel.id == channel.id:
         return
     # If a message from that channel has been pinged recently, don't re-ping
     cooldowns = STORE.get_default('s', msg.server, f'cooldowns', {})
     cooldown = cooldowns.setdefault(msg.channel.id, datetime.min)
-    if (datetime.now() - cooldown).total_seconds() < 10:
+    if (datetime.now() - cooldown).total_seconds() < 20:
         return  # Don't send message if cooldown isn't sufficient
     # Otherwise update cooldown and send ping
     cooldowns[msg.channel.id] = datetime.now()
     STORE.flush()
     # Send the actual msg
-    pingees = get_pingees(msg)
+    potential_pingees = get_pingees(msg)
+    # Filter out pingee if same as message sent
+    if msg.author.id in potential_pingees:
+        potential_pingees.remove(msg.author.id)
+    pingees = []
+    for pingee in potential_pingees:
+        t = get_last_post_time(pingee, msg.server)
+        if t > 90:
+            pingees.append(pingee)
     pingees = [msg.server.get_member(x) for x in pingees]
     if len(pingees) != 0:
         content = f'New message in {msg.channel.mention}: ' + ''.join([x.mention for x in pingees])
