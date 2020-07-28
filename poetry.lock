@@ -69,11 +69,11 @@ version = "0.4.3"
 
 [[package]]
 category = "main"
-description = "A python wrapper for the Discord API"
-name = "discord.py"
+description = "A legacy version of discord.py, a python wrapper for the Discord API"
+name = "discordpy-legacy"
 optional = false
 python-versions = "*"
-version = "0.16.12"
+version = "0.16.13"
 
 [package.dependencies]
 aiohttp = ">=1.0.0,<1.1.0"
@@ -264,7 +264,7 @@ docs = ["sphinx", "jaraco.packaging (>=3.2)", "rst.linker (>=1.9)"]
 testing = ["jaraco.itertools", "func-timeout"]
 
 [metadata]
-content-hash = "27658a936b5fd4365a103b2c4a546c373226c1055bdbc86d0d210778a240eacb"
+content-hash = "bfbb96d18130d3575b1aa821a206d696746f1ae38e40ae745e96dc0837a58f4c"
 python-versions = "^3.6"
 
 [metadata.files]
@@ -303,8 +303,9 @@ colorama = [
     {file = "colorama-0.4.3-py2.py3-none-any.whl", hash = "sha256:7d73d2a99753107a36ac6b455ee49046802e59d9d076ef8e47b61499fa29afff"},
     {file = "colorama-0.4.3.tar.gz", hash = "sha256:e96da0d330793e2cb9485e9ddfd918d456036c7149416295932478192f4436a1"},
 ]
-"discord.py" = [
-    {file = "discord.py-0.16.12.tar.gz", hash = "sha256:17fb8814100fbaf7a79468baa432184db6cef3bbea4ad194fe297c7407d50108"},
+discordpy-legacy = [
+    {file = "discordpy-legacy-0.16.13.tar.gz", hash = "sha256:ad352e54650d2f01da7f96a7ec0d83ef2f0078d0ef8aaded9d555dd9979c70c0"},
+    {file = "discordpy_legacy-0.16.13-py3-none-any.whl", hash = "sha256:41cab4875a6d0fb72340c276e41bd65d0a72acd1b28db43191d61d4dbe1c0729"},
 ]
 importlib-metadata = [
     {file = "importlib_metadata-1.7.0-py2.py3-none-any.whl", hash = "sha256:dc15b2969b4ce36305c51eebe62d418ac7791e9a157911d58bfb1f9ccd8e2070"},
