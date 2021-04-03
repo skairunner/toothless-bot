@@ -5,7 +5,6 @@ from toothless import path, include
 from utils import modstate, roles
 from tymora_plugin import do_dice
 from hello import hello
-from timers import ping, pong
 
 CONFIG_STORE = get_default('toothless-config')
 
@@ -22,7 +21,6 @@ GRACEFULLY_CATCH_EXCEPTIONS = False
 
 event_handler_modules = [
     'fakenitro',
-    'pingme'
 ]
 
 prefix_patterns = [
@@ -34,16 +32,8 @@ prefix_patterns = [
     path('r -v <verbose:bool> <roll:*>', do_dice),
     path('r <roll:*>', do_dice),
     path('hello', hello),
-    path('ping', ping),
-    path('pong', pong),
     path('nick', include('utils.nick_patterns')),
     path('nickname', include('utils.nick_patterns')),
     path('av', include('utils.avatar_patterns')),
     path('avatar', include('utils.avatar_patterns')),
-    path('sprint', include('timers.sprint.prefix_patterns')),
-    path('s', include('timers.sprint.prefix_patterns')),
-    path('remind me', include('timers.remind.prefix_patterns')),
-    path('remindme', include('timers.remind.prefix_patterns')),
-    path('remind', include('timers.remind.prefix_patterns')),
-    path('pingme', include('pingme.prefix_patterns')),
 ]

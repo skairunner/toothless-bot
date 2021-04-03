@@ -19,7 +19,7 @@ async def bind_role(client, message, role=None, keyword=None):
     if not check_admin_or_mod(message):
         return "You don't have permission to do that."
 
-    bindings = STORE.get_default('s', message.server, 'bindings', {})
+    bindings = STORE.get_default('s', message.guild, 'bindings', {})
     keyword = keyword.strip()
     if len(keyword) == 0:
         return "Keywords need to not be empty."
@@ -36,7 +36,7 @@ async def unbind_role(client, message, keyword=None):
     if not check_admin_or_mod(message):
         return "You don't have permission to do that."
     keyword = keyword.strip()
-    bindings = STORE.get_default('s', message.server, 'bindings', {})
+    bindings = STORE.get_default('s', message.guild, 'bindings', {})
     if keyword in bindings:
         roleid = bindings.pop(keyword)
         STORE.set_val('s', message, 'bindings', bindings)
@@ -45,8 +45,11 @@ async def unbind_role(client, message, keyword=None):
 
 
 async def toggle_roles(client, message, keywords=None):
+    if len(keywords) == 0 or keywords[0] == '':
+        return await list_roles(client, message)
     keywords = [x.strip() for x in keywords.split(',')]
-    bindings = STORE.get_default('s', message.server, 'bindings', {})
+
+    bindings = STORE.get_default('s', message.guild, 'bindings', {})
     roles_added = []
     roles_removed = []
     roles_not_found = []
@@ -60,22 +63,19 @@ async def toggle_roles(client, message, keywords=None):
                 removed = True
             if not removed:
                 roles_added.append(bindings[keyword])
-    roles_added = [get_role_by_id(message.server, roleid) for roleid in roles_added]
-    roles_removed = [get_role_by_id(message.server, roleid) for roleid in roles_removed]
+    roles_added = [get_role_by_id(message.guild, roleid) for roleid in roles_added]
+    roles_removed = [get_role_by_id(message.guild, roleid) for roleid in roles_removed]
     # Now batch add & remove
     try:
-        for role in roles_added:
-            await client.add_roles(message.author, role)
-            await asyncio.sleep(0.1)
-        for role in roles_removed:
-            await client.remove_roles(message.author, role)
-            await asyncio.sleep(0.1)
+        await message.author.add_roles(*roles_added, reason = "Role command")
+        await message.author.remove_roles(*roles_removed, reason = "Role command")
     except discord.Forbidden:
         return "It seems I don't have the permission to manage roles."
 
     roles_added_desc = ', '.join([f"@{x.name}" for x in roles_added])
     roles_removed_desc = ', '.join([f"@{x.name}" for x in roles_removed])
     roles_not_found_desc = ', '.join(roles_not_found)
+
     result = '```asciidoc'
     if len(roles_added_desc) > 0:
         result += f'\nRoles added :: {roles_added_desc}'
@@ -92,15 +92,17 @@ async def list_roles(client, message):
 Type `/role <keywords>` to toggle a role on yourself. You can separate keywords by comma.
 """
     embed = discord.Embed(title='ROLE LIST', description=desc)
-    bindings = STORE.get_default('s', message.server, 'bindings', {})
+    bindings = STORE.get_default('s', message.guild, 'bindings', {})
     keyworddesc = '\n'.join([f'`{i+1}.` {x}' for i, x in enumerate(bindings.keys())])
     roledesc = '\n'.join([f'`for` <@&{x}>' for x in bindings.values()])
+
     if keyworddesc == '':
         return "No roles have been bound yet."
+
     embed.add_field(name='KEYWORDS', value=keyworddesc)
     embed.add_field(name='ROLES', value=roledesc)
     embed.color = message.author.color
-    await client.send_message(message.channel, embed=embed)
+    await message.channel.send('', embed=embed)
 
 
 

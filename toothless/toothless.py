@@ -16,8 +16,8 @@ class ConfigError(BaseException):
 
 CONFIG_STORE = get_default('toothless-config')
 class Toothless(discord.Client):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, intent=None):
+        super().__init__(intents=intent)
         self.prefix_patterns = config.prefix_patterns
         COMMAND_PREFIX = CONFIG_STORE.get_global('COMMAND_PREFIX')
         if len(COMMAND_PREFIX) > 1:

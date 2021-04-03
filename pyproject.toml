@@ -8,8 +8,9 @@ license = "MIT"
 [tool.poetry.dependencies]
 python = "^3.6"
 arpeggio = "^1.9.2"
-"discordpy-legacy" = "^0.16.13"
 tymora = {git = "git@github.com:neersighted/tymora.git"}
+"discord.py" = "^1.6.0"
+dateparser = "^1.0.0"
 
 [tool.poetry.dev-dependencies]
 mock = "^4.0.2"

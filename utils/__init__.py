@@ -22,21 +22,29 @@ async def get_avatar(client, message, search=None):
     if search is None:
         user = message.author
     else:
+        # A ping
         maybeid = re.match(r'<@!*(\d+)>', search)
         if maybeid is None:
-            user = message.server.get_member_named(search)
+            user = message.guild.get_member_named(search)
         else:
-            user = await client.get_user_info(maybeid.group(1))
+            # A search
+            user = await client.fetch_user(maybeid.group(1))
+        if user is None:
+            # Also try matching the message as a hash
+            try:
+                user = await client.fetch_user(int(search))
+            except Exception:
+                pass
     if user is None:
         return f"Couldn't find user named '{search}'. Try typing the full name, or search by discriminator."
     if user.avatar_url == '':
         return f"{user.display_name} doesn't have an avatar!"
     embed = discord.Embed(title=f"{user.display_name}'s avatar",
-                          url=user.avatar_url,
+                          url=str(user.avatar_url),
                           description=f"")
     embed.set_image(url=user.avatar_url)
     embed.color = user.color
-    await client.send_message(message.channel, embed=embed)
+    await message.channel.send(embed=embed)
 
 avatar_patterns = [
     path('', get_avatar),

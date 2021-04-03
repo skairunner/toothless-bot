@@ -40,6 +40,7 @@ def smart_split(string, maxlen=2000, searchcount=50):
 
 # Checks if user has a given role by comparing role ids
 def user_has_role(user, roleid):
+    roleid = int(roleid)
     for r in user.roles:
         if r.id == roleid:
             return True
@@ -73,7 +74,7 @@ def has_perm(permnames, msg):
 
 
 def is_admin(msg):
-    return msg.author.server_permissions.administrator
+    return msg.author.guild_permissions.administrator
 
 
 """
@@ -87,6 +88,7 @@ def check_admin_or_mod(message):
     return is_admin(message) or has_perm('mod', message)
 
 def get_role_by_id(server, roleid):
+    roleid = int(roleid)
     for role in server.roles:
         if role.id == roleid:
             return role

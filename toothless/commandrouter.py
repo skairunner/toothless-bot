@@ -43,10 +43,7 @@ def curry_inner(inner):
             msgs = smart_split(msgs)
         if isinstance(msgs, list):
             for msg in msgs:
-                await client.send_message(
-                    message.channel,
-                    msg
-                )
+                await message.channel.send(msg)
     return newinner
 
 

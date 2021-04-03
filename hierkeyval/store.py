@@ -85,7 +85,7 @@ class HierarchicalStore:
         elif level == 's':
             d = self.sserver
             if identifier:
-                ident = self.ident_transforms['s'](identifier.server)
+                ident = self.ident_transforms['s'](identifier.guild)
         elif level == 'c':
             d = self.schannel
             if identifier:

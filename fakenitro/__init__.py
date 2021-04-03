@@ -7,7 +7,7 @@ EMOJI = {}
 async def load_emoji(client):
     global EMOJI
     EMOJI = {}
-    for emoji in client.get_all_emojis():
+    for emoji in client.emojis:
         EMOJI[emoji.name] = emoji
     logging.info(f'fakenitro - Loaded {len(EMOJI.keys())} emoji.')
 
@@ -15,4 +15,4 @@ async def load_emoji(client):
 async def add_reactions(client, message, matchobj, name=None):
     if name in EMOJI:
         emoji = EMOJI[name]
-        await client.add_reaction(message, emoji)
+        await message.add_reaction(emoji)
