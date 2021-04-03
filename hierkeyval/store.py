@@ -236,7 +236,7 @@ def get_default(namespace=None):
     if DEFAULT is None:
         DEFAULT = HierarchicalStore(
             'default.hkv',
-            transforms={'s': lambda x: x.id, 'c': lambda x: x.id},
+            transforms={'s': lambda x: str(x.id), 'c': lambda x: str(x.id)},
             is_default=True
         )
 
